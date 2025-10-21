@@ -12,7 +12,7 @@ const NAVIGATION = [
 
 export default function Header() {
   return (
-    <header className="bg-background sticky top-0 z-50 w-full">
+    <header className="bg-background sticky top-0 z-50 w-full py-0.5">
       <div className="flex flex-row items-center">
         <div aria-hidden className="sr-only size-10" />
 
