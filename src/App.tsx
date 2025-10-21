@@ -8,7 +8,7 @@ import NotFound from "./pages/NotFound";
 
 function App() {
   return (
-    <div className="relative container mx-auto flex min-h-svh flex-col px-2 md:px-0">
+    <div className="relative container mx-auto flex min-h-svh flex-col gap-6 px-2 md:px-0">
       <Header />
 
       <main className="flex flex-1 flex-col">
