@@ -1,25 +1,25 @@
-import { Link, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import Events from "./pages/Events";
 import Profile from "./pages/Profile";
-import Feed from "./pages/Feed";
+import Explore from "./pages/Explore";
+import Header from "@/components/Header";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
-    <div className="container mx-auto">
-      <nav className="flex flex-row gap-2 items-center justify-center w-full *:hover:text-blue-500 *:px-4 *:py-2 *:font-medium">
-        <Link to="/">Home</Link>
-        <Link to="/events">Events</Link>
-        <Link to="/feed">Feed</Link>
-        <Link to="/profile">Profile</Link>
-      </nav>
+    <div className="relative container mx-auto flex min-h-svh flex-col px-2 md:px-0">
+      <Header />
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/events" element={<Events />} />
-        <Route path="/feed" element={<Feed />} />
-        <Route path="/profile" element={<Profile />} />
-      </Routes>
+      <main className="flex flex-1 flex-col">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/events" element={<Events />} />
+          <Route path="/explore" element={<Explore />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
     </div>
   );
 }
