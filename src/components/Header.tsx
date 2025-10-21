@@ -27,8 +27,7 @@ export default function Header() {
                     cn(
                       "inline-flex h-9 items-center rounded-md px-4 py-2 font-medium transition-colors",
                       "hover:bg-accent hover:text-accent-foreground",
-                      isActive &&
-                        "hover:bg-background text-blue-500 hover:text-blue-500",
+                      isActive && "hover:bg-background text-blue-500 hover:text-blue-500"
                     )
                   }
                 >
