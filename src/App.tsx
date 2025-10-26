@@ -8,10 +8,10 @@ import NotFound from "./pages/NotFound";
 
 function App() {
   return (
-    <div className="relative container mx-auto flex min-h-svh flex-col gap-6 px-2 md:px-0">
+    <div className="relative container mx-auto flex min-h-svh flex-col gap-4 px-2 md:px-0">
       <Header />
 
-      <main className="flex flex-1 flex-col">
+      <main className="flex flex-1 flex-col gap-4">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/events" element={<Events />} />
