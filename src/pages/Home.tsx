@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/Button";
-import { MapPin, Briefcase, CalendarClock, CalendarDays, Heart, Clock, Ship } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { FilterBar } from "@/components/FilterBar";
+import { CalendarDays, Heart, Clock, Ship, MapPin } from "lucide-react";
 
 const DATA = [
   {
@@ -55,47 +56,17 @@ const DATA = [
   },
 ];
 
-const NAV = [
-  { label: "Jobs in map area", icon: <MapPin /> },
-  { label: "All positions", icon: <Briefcase /> },
-  { label: "Availability", icon: <CalendarClock /> },
-];
-
-function FilterBar({
-  activeTab,
-  setActiveTab,
-}: {
-  activeTab: string | null;
-  setActiveTab: (tab: string) => void;
-}) {
-  return (
-    <div className="flex justify-center py-6">
-      <div className="flex items-center gap-2 rounded-full bg-neutral-200 p-2">
-        {NAV.map((item) => {
-          return (
-            <Button
-              key={item.label}
-              size={"sm"}
-              className=""
-              variant={activeTab?.includes(item.label) ? "filterActive" : "filter"}
-              onClick={() => setActiveTab(item.label)}
-            >
-              {item.icon}
-              {item.label}
-            </Button>
-          );
-        })}
-        <Button variant="search" size={"xs"}>
-          Search
-        </Button>
-      </div>
-    </div>
-  );
-}
-
 export default function Home() {
+  const location = useLocation();
   const [jobs, setJobs] = useState(DATA);
   const [activeTab, setActiveTab] = useState<string>("Jobs in map area");
+
+  useEffect(() => {
+    const navigationState = location.state as { activeTab?: string } | null;
+    if (navigationState?.activeTab) {
+      setActiveTab(navigationState.activeTab);
+    }
+  }, [location.state]);
 
   const toggleFavorite = (id: number) => {
     setJobs((prevJobs) =>
@@ -132,43 +103,59 @@ export default function Home() {
           <div>{displayText}</div>
 
           {/* JOBS LIST */}
-          <div className="flex flex-col gap-2.5">
+          <ul className="flex flex-col gap-2.5" role="list">
             {filteredJobs.map((job) => (
-              <div key={job.id} aria-label="Card" className="flex flex-row gap-2.5">
-                <div className="relative size-24 rounded-3xl bg-neutral-300">
-                  <Heart
-                    onClick={() => toggleFavorite(job.id)}
-                    className={`absolute top-2.5 right-2.5 cursor-pointer transition ${
-                      job.favorite
-                        ? "fill-red-500 text-red-500"
-                        : "fill-neutral-400 text-neutral-400"
-                    }`}
-                  />
-                </div>
-                <div className="flex flex-col justify-between py-2">
-                  <h2 className="font-semibold">{job.title}</h2>
-                  <div className="flex items-center gap-x-4">
-                    <p className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5 text-neutral-400" /> <span>{job.type}</span>
-                    </p>
-                    <p className="flex items-center gap-1">
-                      <CalendarDays className="h-3.5 w-3.5 text-neutral-400" />{" "}
-                      <span>{job.date}</span>
-                    </p>
+              <li key={job.id} role="listitem">
+                <Link
+                  to={`/jobs/${job.id}`}
+                  state={{ job }}
+                  aria-label={`View details for ${job.title}`}
+                  className="flex flex-row gap-2.5"
+                >
+                  <div className="relative size-24 rounded-3xl bg-neutral-300">
+                    <button
+                      aria-label={job.favorite ? "Remove from favorites" : "Add to favorites"}
+                      aria-pressed={job.favorite}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleFavorite(job.id);
+                      }}
+                    >
+                      <Heart
+                        className={`absolute top-2.5 right-2.5 cursor-pointer transition ${
+                          job.favorite
+                            ? "fill-red-500 text-red-500"
+                            : "fill-neutral-400 text-neutral-400"
+                        }`}
+                      />
+                    </button>
                   </div>
-                  <div className="flex items-center gap-x-4">
-                    <p className="flex items-center gap-1">
-                      <Ship className="h-3.5 w-3.5 text-neutral-400" /> <span>{job.vessel}</span>
-                    </p>
-                    <p className="flex items-center gap-1">
-                      <MapPin className="h-3.5 w-3.5 text-neutral-400" />{" "}
-                      <span>{job.location}</span>
-                    </p>
+                  <div className="flex flex-col justify-between py-2">
+                    <h2 className="font-semibold">{job.title}</h2>
+                    <div className="flex items-center gap-x-4">
+                      <p className="flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5 text-neutral-400" /> <span>{job.type}</span>
+                      </p>
+                      <p className="flex items-center gap-1">
+                        <CalendarDays className="h-3.5 w-3.5 text-neutral-400" />
+                        <span>{job.date}</span>
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-x-4">
+                      <p className="flex items-center gap-1">
+                        <Ship className="h-3.5 w-3.5 text-neutral-400" /> <span>{job.vessel}</span>
+                      </p>
+                      <p className="flex items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5 text-neutral-400" />
+                        <span>{job.location}</span>
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
         {/* MAP */}
         <div>

@@ -19,6 +19,7 @@ const buttonVariants = cva(
         filter: "bg-neutral-200 text-neutral-700 rounded-full",
         filterActive: "bg-neutral-200 text-blue-600 rounded-full",
         search: "bg-blue-500 text-white hover:bg-blue-600 rounded-full",
+        action: "bg-green-500 text-white hover:bg-green-600",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
