@@ -3,7 +3,7 @@ import { Feed } from "../components/feed/Feed";
 import type { Post } from "../types/post";
 import avatarImage from "../assets/avatar.png";
 
-
+const now = Date.now();
 const mockPosts: Post[] = [
   {
     id: "1",
@@ -30,7 +30,7 @@ const mockPosts: Post[] = [
     mediaUrl: "/greenland.jpg",
     mediaAlt: "very cold",
     location: { name: "Nuuk, Greenland" },
-    createdAt: new Date().toISOString(),
+    createdAt: new Date(now - 23 * 60 * 60 * 1000).toISOString(),
     likeCount: 10,
     commentCount: 2,
     hasLiked: true,
@@ -45,11 +45,11 @@ const mockPosts: Post[] = [
     mediaUrl: "/copenhagen.jpg",
     mediaAlt: "funny houses",
     location: { name: "Copenhagen, Denmark" },
-    createdAt: new Date().toISOString(),
+    createdAt: new Date(now - 71 * 60 * 60 * 1000).toISOString(),
     likeCount: 8,
     commentCount: 5,
     hasLiked: false,
-  }
+  },
 ];
 
 export default function Explore() {
@@ -63,12 +63,10 @@ export default function Explore() {
     <main className="mx-auto flex max-w-2xl flex-col items-center px-4 pt-6 pb-24">
       <header className="mb-6 w-full text-center">
         <h1 className="text-2xl font-semibold tracking-tight">Your feed</h1>
-        <p className="text-sm text-muted-foreground">
-          See news from friends
-        </p>
+        <p className="text-muted-foreground text-sm">See news from friends</p>
       </header>
 
       <Feed initialPosts={posts} />
     </main>
   );
-} 
+}
