@@ -15,7 +15,7 @@ const mockPosts: Post[] = [
     mediaUrl: "/beach.jpg",
     mediaAlt: "nice beach",
     location: { name: "St. Thomas, U.S. Virgin Islands" },
-    createdAt: new Date().toISOString(),
+    createdAt: new Date(now - 1 * 60 * 1000).toISOString(),
     likeCount: 5,
     commentCount: 3,
     hasLiked: false,
