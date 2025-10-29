@@ -1,79 +1,91 @@
 import React from 'react';
 
 const Profile: React.FC = () => {
-
   return (
-    <div className="flex flex-col items-center gap-6 w-[1440px] h-[1024px] py-6 bg-white mx-auto">
-      {/* Top navigation */}
+    <main className="flex flex-col items-center gap-6 max-w-7xl mx-auto px-4 py-6 bg-white">
       
-
       {/* Profile Card */}
-      <div className="flex flex-col items-center bg-white p-8 rounded-2xl shadow-md w-full max-w-xl">
+      <section className="flex flex-col items-center bg-white p-8 rounded-2xl shadow-md w-full max-w-xl">
         {/* Avatar */}
-        <div className="w-20 h-20 rounded-full bg-pink-200 flex items-center justify-center mb-2 text-5xl">
-          {/* Substitute emoji or avatar image here */}
-          <span role="img" aria-label="jack">🧑‍🦰</span>
+        <div className="w-20 h-20 rounded-full bg-pink-200 flex items-center justify-center mb-4">
+          {/* out of scope: Should emoji be replaced with real profile image for better personalization */}
+          <img
+            src="./src/assets/avatar.png"
+            alt="Jack Sparrow"
+            className="w-full h-full rounded-full object-cover"
+          />
         </div>
-        {/* Name and Rating */}
-        <h2 className="text-xl font-bold mt-1 mb-1">Jack Sparrow</h2>
-        <div className="flex items-center mb-2">
+        {/* Name & Rating */}
+        <h2 className="text-xl font-bold mb-2">Jack Sparrow</h2>
+        <div className="flex items-center mb-3" aria-label="Rating">
           {[...Array(4)].map((_, i) => (
             <span key={i} className="text-yellow-400 text-lg">★</span>
           ))}
           <span className="text-gray-300 text-lg">★</span>
         </div>
-        {/* Role & Meta Info */}
-        <div className="flex items-center text-gray-600 gap-2 mb-1">
+        {/* Role & Joined Date */}
+        <div className="flex items-center text-gray-600 gap-2 mb-2">
           <span>👜 Sailor</span>
           <span>• Joined Jan 2025</span>
         </div>
-        <div className="text-gray-500 mb-2">
-          📍 Copenhagen, Denmark
-        </div>
+        {/* Location */}
+        <div className="text-gray-500 mb-4">📍 Copenhagen, Denmark</div>
         {/* Actions */}
-        <div className="flex gap-2 mb-2">
-          <button className="px-3 py-1 rounded bg-gray-100 text-gray-700">Email</button>
-          <button className="px-3 py-1 rounded bg-gray-100 text-gray-700">Message</button>
-          <button className="px-3 py-1 rounded bg-gray-100 text-gray-700">Call</button>
+        <div className="flex gap-2 mb-4">
+          <button
+            aria-label="Send email"
+            className="px-4 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
+          >
+            Email
+          </button>
+          <button
+            aria-label="Send message"
+            className="px-4 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
+          >
+            Message
+          </button>
+          <button
+            aria-label="Call contact"
+            className="px-4 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
+          >
+            Call
+          </button>
         </div>
-      </div>
+      </section>
 
       {/* Profile Sections */}
-      <div className="flex flex-col gap-4 w-full max-w-xl">
+      <section className="flex flex-col gap-6 w-full max-w-2xl p-4">
         {/* About & Hobbies */}
-        <section>
-          <h3 className="font-semibold">About & Hobbies</h3>
-          <p className="text-gray-600 text-sm">Jack Sparrow was a legendary pirate of the Seven Seas and the irreverent trickster of the Caribbean. 
-           A captain of equally dubious morality and sobriety, a master of self-promotion and self-interest, 
-           he fought a constant and losing battle with his own best tendencies while living the pirate's life. 
-           Sparrow may be the best or worst pirate, depending on whose opinion to take into account, 
-           and was the quickest to seize the moment and make it his own; whether by cause and careful planning or mere accident was a matter of debate, 
-           but the results were the same and always different.....</p>
-        </section>
+        <article>
+          <h3 className="font-semibold mb-2 text-lg">About & Hobbies</h3>
+          <p className="text-gray-600 text-sm">
+            {/* Replace with real content */}
+            Jack Sparrow was a legendary pirate of the Seven Seas, known for his wit and cunning. His adventures spanned the Caribbean and beyond...
+          </p>
+        </article>
 
         {/* Experience Log */}
-        <section>
-          <h3 className="font-semibold mb-1">Experience Log</h3>
-          <div className="flex items-center gap-3 py-2 px-3 bg-gray-50 rounded">
+        <article>
+          <h3 className="font-semibold mb-2 text-lg">Experience Log</h3>
+          {/* Experience Entry */}
+          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded shadow-sm hover:bg-gray-100 transition">
+            {/* Placeholder Image or Icon */}
             <div className="w-16 h-16 bg-blue-200 rounded-md flex items-center justify-center text-3xl">
-              {/* Placeholder for image/map */}
               🌍
             </div>
             <div>
-              <div className="font-medium">
-                Island Hopping <span className="ml-1">🏝️🧑‍🤝‍🧑🌈🚤🎉</span>
-              </div>
-              <div className="text-gray-500 text-sm">Fiscardo to Ithaca, Greece</div>
-              <div className="text-gray-500 text-sm">52m (171ft) Motor Yacht</div>
-              <div className="text-gray-500 text-sm">12th Sep 2025</div>
+              <h4 className="font-medium mb-1">Island Hopping <span className="ml-2">🏝️🧑‍🤝‍🧑🌈🚤🎉</span></h4>
+              <p className="text-gray-500 text-sm mb-1">Fiscardo to Ithaca, Greece</p>
+              <p className="text-gray-500 text-sm mb-1">52m (171ft) Motor Yacht</p>
+              <p className="text-gray-500 text-sm">12th Sep 2025</p>
             </div>
           </div>
-        </section>
+        </article>
 
         {/* Qualifications */}
         <section>
-          <h3 className="font-semibold">Qualifications</h3>
-          <ul className="text-gray-600 text-sm list-disc list-inside">
+          <h3 className="font-semibold mb-2 text-lg">Qualifications</h3>
+          <ul className="list-disc list-inside text-gray-600 text-sm">
             <li>ICC</li>
             <li>Marine VHF Radio</li>
           </ul>
@@ -81,17 +93,18 @@ const Profile: React.FC = () => {
 
         {/* Skills */}
         <section>
-          <h3 className="font-semibold">Skills</h3>
-          <p className="text-gray-600 text-sm">Description....</p>
+          <h3 className="font-semibold mb-2 text-lg">Skills</h3>
+          <p className="text-gray-600 text-sm">Describe skills here...</p>
         </section>
 
         {/* Feedback */}
         <section>
-          <h3 className="font-semibold">Feedback</h3>
-          <p className="text-gray-600 text-sm">Comments....</p>
+          <h3 className="font-semibold mb-2 text-lg">Feedback</h3>
+          <p className="text-gray-600 text-sm">Comments or reviews...</p>
         </section>
-      </div>
-    </div>
+      </section>
+    </main>
   );
-}
+};
+
 export default Profile;
