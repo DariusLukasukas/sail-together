@@ -63,3 +63,8 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-heart-red: var(--heart-red);
 }
+
+.sticky-h {
+  height: calc(100vh - var(--header, 0px));
+  height: calc(100dvh - var(--header, 0px)); /* wins when supported */
+}

@@ -20,9 +20,9 @@ export interface Coordinates {
 }
 
 export interface Location {
-  name?: string;
-  address?: string;
-  coordinates?: Coordinates;
+  name: string;
+  address: string;
+  coordinates: Coordinates;
 }
 
 export interface Event {
@@ -34,5 +34,5 @@ export interface Event {
   endDate?: string;
   category: Categories;
   price: Price;
-  location?: Location;
+  location: Location;
 }
