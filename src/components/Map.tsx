@@ -1,6 +1,7 @@
 import mapboxgl, { Map as MapboxMap } from "mapbox-gl";
 import { useEffect, useRef, useState } from "react";
 import Marker from "./Marker";
+import Popup from "./Popup";
 import { type EventFeature, type EventFeatureCollection } from "@/lib/eventsToGeoJSON";
 
 const MAPBOX_API_KEY = import.meta.env.VITE_MAPBOX_API_KEY;
@@ -12,6 +13,7 @@ interface MapProps {
 export default function Map({ events }: MapProps) {
   const mapRef = useRef<MapboxMap | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
+
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedMarker, setSelectedMarker] = useState<EventFeature | null>(null);
 
@@ -47,10 +49,27 @@ export default function Map({ events }: MapProps) {
     if (!selectedMarker) return;
     mapRef.current!.flyTo({
       center: [selectedMarker.geometry.coordinates[0], selectedMarker.geometry.coordinates[1]],
-      zoom: 12,
+      zoom: 10,
       duration: 1000,
     });
   }, [selectedMarker]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const onMapClick = (e: mapboxgl.MapMouseEvent & { originalEvent: MouseEvent }) => {
+      const target = e.originalEvent.target as HTMLElement;
+      if (target.closest(".mapboxgl-marker") || target.closest(".mapboxgl-popup")) return;
+      setSelectedMarker(null);
+    };
+
+    map.on("click", onMapClick);
+
+    return () => {
+      map.off("click", onMapClick);
+    };
+  }, [mapLoaded]);
 
   return (
     <div className="relative h-full w-full grow overflow-hidden rounded-2xl">
@@ -65,6 +84,9 @@ export default function Map({ events }: MapProps) {
             setSelectedMarker={setSelectedMarker}
           />
         ))}
+      {mapRef.current && selectedMarker && (
+        <Popup key={selectedMarker.properties.id} map={mapRef.current} feature={selectedMarker} />
+      )}
     </div>
   );
 }

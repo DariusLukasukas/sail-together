@@ -2,6 +2,7 @@ import type { Feature, FeatureCollection, Point } from "geojson";
 import type { Categories, Event } from "@/types/event";
 
 export type EventFeatureProperties = {
+  id: string;
   title: string;
   category: Categories;
 };
@@ -18,6 +19,7 @@ function eventToFeature(event: Event): EventFeature {
       coordinates: [longitude, latitude],
     },
     properties: {
+      id: event.id,
       title: event.title,
       category: event.category,
     },

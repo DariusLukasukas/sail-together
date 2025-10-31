@@ -2,6 +2,8 @@ import mapboxgl from "mapbox-gl";
 import type { EventFeature } from "@/lib/eventsToGeoJSON";
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { cn } from "@/lib/utils";
+import { useEventStore } from "@/store/useEventStore";
 
 interface MarkerProps {
   map: mapboxgl.Map;
@@ -11,12 +13,15 @@ interface MarkerProps {
 }
 
 export default function Marker({ map, feature, selectedMarker, setSelectedMarker }: MarkerProps) {
-  const { geometry } = feature;
+  const { geometry, properties } = feature;
 
-  const contentRef = useRef<HTMLDivElement>(document.createElement("div"));
   const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const contentRef = useRef<HTMLDivElement>(document.createElement("div"));
 
-  const isSelected = feature.properties.title === selectedMarker?.properties.title;
+  const { hoveredEventId } = useEventStore();
+  const isHovered = properties.id === hoveredEventId;
+
+  const isSelected = properties.id === selectedMarker?.properties.id;
 
   useEffect(() => {
     if (!map) return;
@@ -28,7 +33,8 @@ export default function Marker({ map, feature, selectedMarker, setSelectedMarker
     markerRef.current = marker;
 
     return () => {
-      markerRef.current?.remove();
+      marker.remove();
+      markerRef.current = null;
     };
   }, [map, geometry.coordinates]);
 
@@ -38,8 +44,15 @@ export default function Marker({ map, feature, selectedMarker, setSelectedMarker
     <>
       {createPortal(
         <div
-          onClick={() => setSelectedMarker(feature)}
-          className={`size-5 rounded-full bg-blue-500 ${isSelected ? "bg-red-500" : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedMarker(feature);
+          }}
+          className={cn(
+            "z-10 size-6 cursor-pointer rounded-full border-2 bg-blue-500 transition hover:z-20 hover:scale-125",
+            isSelected ? "scale-125 bg-black" : "",
+            isHovered ? "bg-black" : ""
+          )}
         />,
         contentRef.current
       )}

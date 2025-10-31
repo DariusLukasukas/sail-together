@@ -14,11 +14,11 @@ const EVENTS: Event[] = [
     category: "race",
     price: { kind: "paid", amount: 100, currency: "DKK" },
     location: {
-      name: "Amager Strandpark",
-      address: "Amager Strandpark, 2300 København S",
+      name: "Kastrup Lystbådehavn",
+      address: "Amager Strand Promenaden 1, 2300 København S",
       coordinates: {
-        longitude: 12.61,
-        latitude: 55.664,
+        longitude: 12.6504772,
+        latitude: 55.6414876,
       },
     },
   },
@@ -30,10 +30,10 @@ const EVENTS: Event[] = [
     price: { kind: "free" },
     location: {
       name: "Tuborg Harbor",
-      address: "Tuborg Havnevej 7, 2900 Hellerup",
+      address: "Tuborg Havnevej 15, 2900 Hellerup",
       coordinates: {
-        longitude: 12.5685,
-        latitude: 55.7288,
+        longitude: 12.587332,
+        latitude: 55.7267138,
       },
     },
   },
@@ -49,8 +49,8 @@ const EVENTS: Event[] = [
       name: "Nyhavn Harbour",
       address: "Nyhavn, 1051 København K",
       coordinates: {
-        longitude: 12.6524923,
-        latitude: 55.6545888,
+        longitude: 12.5908,
+        latitude: 55.6799,
       },
     },
   },
