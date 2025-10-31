@@ -1,37 +1,20 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Heart, Clock, CalendarDays, Ship, MapPin, X, Link2, Mail } from "lucide-react";
-import { FilterBar } from "@/components/FilterBar";
+import FilterBar from "@/components/FilterBar";
 import { Button } from "@/components/ui/Button";
 import { useState } from "react";
 import { useEffect } from "react";
-
-type Job = {
-  id: number;
-  favorite?: boolean;
-  title: string;
-  type: string;
-  date: string;
-  vessel: string;
-  location: string;
-  inMapArea?: boolean;
-};
+import type { Job } from "@/types/job";
 
 export default function JobDetails() {
   const location = useLocation();
-  const navigate = useNavigate();
   const jobFromState = (location.state as { job?: Job } | null)?.job;
-  const [activeTab, setActiveTab] = useState<string>("Jobs in map area");
   const [applyOpen, setApplyOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
   const job: Job | null = jobFromState ?? null;
 
   if (!job) return null;
-
-  const handleFilterChange = (tab: string) => {
-    setActiveTab(tab);
-    navigate("/", { state: { activeTab: tab } });
-  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -52,7 +35,9 @@ export default function JobDetails() {
 
   return (
     <div>
-      <FilterBar activeTab={activeTab} setActiveTab={handleFilterChange} />
+      <div className="flex justify-center py-6">
+        <FilterBar disabled />
+      </div>
       <div className="px-24">
         <div className="flex flex-col gap-4">
           <div className="flex flex-row gap-2.5">
@@ -107,20 +92,32 @@ export default function JobDetails() {
           {/* Description sections */}
           <div className="flex flex-col gap-6">
             <div>
-              <div className="font-medium">Job description</div>
-              <div className="text-sm">Description....</div>
+              <div className="mb-1 font-medium">Job description</div>
+              <div className="text-sm">{job.jobDescription}</div>
             </div>
             <div>
-              <div className="font-medium">Requirements</div>
-              <div className="text-sm">Description....</div>
+              <div className="mb-1 font-medium">Requirements</div>
+              <div className="text-sm">
+                <ul>
+                  {job.requirements.map((q, i) => (
+                    <li key={i}>{q}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
             <div>
-              <div className="font-medium">Language & Visas</div>
-              <div className="text-sm">Description....</div>
+              <div className="mb-1 font-medium">Experience</div>
+              <div className="text-sm">{job.experience}</div>
             </div>
             <div>
-              <div className="font-medium">What this workplace offers</div>
-              <div className="text-sm">Description....</div>
+              <div className="mb-1 font-medium">Essential Qualifications</div>
+              <div className="text-sm">
+                <ul>
+                  {job.qualifications.map((q, i) => (
+                    <li key={i}>{q}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
 

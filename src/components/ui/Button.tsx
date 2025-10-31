@@ -18,7 +18,6 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         filter: "bg-neutral-200 text-neutral-700 rounded-full",
         filterActive: "bg-neutral-200 text-blue-600 rounded-full",
-        search: "bg-blue-500 text-white hover:bg-blue-600 rounded-full",
         action: "bg-green-500 text-white hover:bg-green-600",
       },
       size: {
