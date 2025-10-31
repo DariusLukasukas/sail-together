@@ -1,6 +1,5 @@
 import React from "react";
-//import { useParams } from "react-router-dom"; // To read the ID from the URL
-import { format } from "date-fns"; //  dates
+import { format } from "date-fns";
 import type { UserProfile, UserExperience } from "../types/user";
 import avatarImage from "../assets/avatar.png";
 import { Star, MapPin, Briefcase, Ship, CalendarDays, User, Radio } from "lucide-react"; //
@@ -8,17 +7,16 @@ import AvatarStack from "@/components/ui/AvatarStack"; // Import your new compon
 import memoji1 from "@/assets/feedback/memoji-1.png"; // Import the images
 import memoji2 from "@/assets/feedback/memoji-2.png";
 import memoji3 from "@/assets/feedback/memoji-3.png";
+import { Button } from "@/components/ui/Button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-// --- Mock Data ---
-// Mock profile: http://localhost:5173/profile/any-id-works
-// Updated to match the Figma design (Clara A., Stewardess, etc.)
 const MOCK_USER_DATA: UserProfile = {
   id: "1",
   name: "Clara A.",
   email: "clara.a@example.com",
   phone: "+1234567890",
   avatarUrl: avatarImage,
-  rating: 4.5, // <-- Set to 4.5 for half-star logic
+  rating: 4.5,
   role: "Stewardess",
   joinedDate: "2025-01-15T10:00:00Z",
   location: "Copenhagen, Denmark",
@@ -26,12 +24,10 @@ const MOCK_USER_DATA: UserProfile = {
   experiences: [
     {
       id: "e1",
-      title: "Island Hopping 🏝️🧑‍🤝‍🧑🌈🚤🎉",
+      title: "Island Hopping",
       location: "Fiscardo to Ithaca, Greece",
       vessel: "52m (171ft) Motor Yacht",
       date: "2025-09-12T00:00:00Z",
-      // use a placeholder for the map image
-      icon: "https://placehold.co/100x100/E0E0E0/B0B0B0?text=Map",
     },
   ],
   qualifications: ["ICC", "Marine VHF Radio"],
@@ -55,13 +51,12 @@ type ExperienceEntryProps = {
 const ExperienceEntry = ({ experience }: ExperienceEntryProps) => {
   return (
     <div className="flex items-center gap-4 border-b border-gray-100 py-4">
-      <img
-        src={experience.icon} // Using the placeholder URL from mock data
-        alt={experience.title}
-        className="h-20 w-20 flex-shrink-0 rounded-md bg-gray-100 object-cover"
-      />
+      <div className="size-24 rounded-3xl bg-neutral-300" />
       <div className="flex flex-col gap-1.5">
-        <h4 className="font-semibold text-gray-900">{experience.title}</h4>
+        <div className="flex items-center space-x-2">
+          <h4 className="font-semibold text-gray-900">{experience.title}</h4>
+          <AvatarStack data={mockFeedbackAvatars} size={"size-7"} />
+        </div>
         <p className="flex items-center gap-2 text-sm text-gray-600">
           <MapPin className="h-4 w-4 text-gray-400" />
           {experience.location}
@@ -107,24 +102,20 @@ const StarRating = ({ rating }: { rating: number }) => {
 const Profile: React.FC = () => {
   const user = MOCK_USER_DATA;
   return (
-    <main className="mx-auto flex max-w-xl flex-col items-center gap-6 bg-white px-4 py-6">
+    <main className="mx-auto flex w-full max-w-xl flex-col items-start gap-6 px-4 py-6">
       {/* Profile Card Section */}
-      <section className="flex w-full flex-col items-center bg-white p-6">
-        {/* Avatar  */}
-        <img
-          src={user.avatarUrl}
-          alt={user.name}
-          className="mb-4 h-24 w-24 rounded-3xl object-cover"
-        />
+      <section className="flex w-full flex-col items-center gap-2 p-6">
+        <Avatar className="size-24 rounded-3xl bg-[#FFC7D6]">
+          <AvatarImage src={user.avatarUrl} alt={user.name} />
+          <AvatarFallback>{user.name[0]}</AvatarFallback>
+        </Avatar>
 
         {/* Name & Rating */}
-        <h2 className="mb-2 text-2xl font-bold">{user.name}</h2>
-        <div className="mb-4">
-          <StarRating rating={user.rating} />
-        </div>
+        <h2 className="text-2xl font-bold">{user.name}</h2>
+        <StarRating rating={user.rating} />
 
         {/* Role & Joined Date */}
-        <div className="mb-4 flex items-center gap-4 text-sm text-gray-600">
+        <div className="flex items-center gap-4 text-sm text-gray-600">
           <span className="flex items-center gap-1.5">
             <Briefcase className="h-4 w-4 text-gray-400" /> {user.role}
           </span>
@@ -132,33 +123,32 @@ const Profile: React.FC = () => {
         </div>
 
         {/* Location */}
-        <div className="mb-6 flex items-center gap-1.5 text-sm text-gray-600">
+        <div className="flex items-center gap-1.5 text-sm text-gray-600">
           <MapPin className="h-4 w-4 text-gray-400" /> {user.location}
         </div>
 
         {/* Actions (updated button style) */}
-        <div className="mb-4 flex gap-2">
-          <button
+        <div className="flex gap-2">
+          <Button
             aria-label="Send email"
+            variant={"secondary"}
             onClick={() => (window.location.href = `mailto:${user.email}`)}
-            className="rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+            className="rounded-full"
           >
             Email
-          </button>
-          <button
-            aria-label="Send message"
-            className="rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
-          >
+          </Button>
+          <Button aria-label="Send message" variant={"secondary"} className="rounded-full">
             Message
-          </button>
+          </Button>
           {user.phone && (
-            <button
+            <Button
               aria-label="Call contact"
+              variant={"secondary"}
               onClick={() => (window.location.href = `tel:${user.phone}`)}
-              className="rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+              className="rounded-full"
             >
               Call
-            </button>
+            </Button>
           )}
         </div>
       </section>
@@ -167,7 +157,7 @@ const Profile: React.FC = () => {
       <section className="flex w-full flex-col gap-6 p-4">
         {/* About & Hobbies */}
         <article>
-          <h3 className="mb-2 text-lg font-semibold">About & Hobbies</h3>
+          <h3 className="text-lg font-semibold">About & Hobbies</h3>
           <p className="text-sm text-gray-600">{user.about}</p>
         </article>
         <hr className="border-gray-100" />
@@ -179,11 +169,8 @@ const Profile: React.FC = () => {
             {user.experiences.map((exp) => (
               <ExperienceEntry key={exp.id} experience={exp} />
             ))}
-            {/*  AvatarStack  */}
-            <AvatarStack data={mockFeedbackAvatars} />
           </div>
         </article>
-        <hr className="border-gray-100" />
 
         {/* Qualifications */}
         <section>
