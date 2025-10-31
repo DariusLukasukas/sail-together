@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams } from "react-router-dom"; // To read the ID from the URL
+//import { useParams } from "react-router-dom"; // To read the ID from the URL
 import { format } from "date-fns"; //  dates
 import type { UserProfile, UserExperience } from "../types/user";
 import avatarImage from "../assets/avatar.png";
