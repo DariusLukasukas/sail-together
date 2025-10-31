@@ -23,5 +23,5 @@ function App() {
     </div>
   );
 }
-// Updated App.tsx to include the dynamic :userId parameter in the <Route> path
+
 export default App;
