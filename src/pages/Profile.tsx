@@ -3,8 +3,8 @@ import { format } from "date-fns";
 import type { UserProfile, UserExperience } from "../types/user";
 import avatarImage from "../assets/avatar.png";
 import { Star, MapPin, Briefcase, Ship, CalendarDays, User, Radio } from "lucide-react"; //
-import AvatarStack from "@/components/ui/AvatarStack"; // Import your new component
-import memoji1 from "@/assets/feedback/memoji-1.png"; // Import the images
+import AvatarStack from "@/components/ui/AvatarStack";
+import memoji1 from "@/assets/feedback/memoji-1.png";
 import memoji2 from "@/assets/feedback/memoji-2.png";
 import memoji3 from "@/assets/feedback/memoji-3.png";
 import { Button } from "@/components/ui/Button";
@@ -43,7 +43,6 @@ const mockFeedbackAvatars = [
 ];
 
 // --- Child Component ---
-// Updated to match the Figma design
 type ExperienceEntryProps = {
   experience: UserExperience;
 };
