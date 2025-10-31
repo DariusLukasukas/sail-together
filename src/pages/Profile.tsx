@@ -1,9 +1,13 @@
 import React from "react";
 import { useParams } from "react-router-dom"; // To read the ID from the URL
 import { format } from "date-fns"; //  dates
-import type { UserProfile, UserExperience } from "../types/user"; //
+import type { UserProfile, UserExperience } from "../types/user";
 import avatarImage from "../assets/avatar.png";
 import { Star, MapPin, Briefcase, Ship, CalendarDays, User, Radio } from "lucide-react"; //
+import AvatarStack from "@/components/ui/AvatarStack"; // Import your new component
+import memoji1 from "@/assets/feedback/memoji-1.png"; // Import the images
+import memoji2 from "@/assets/feedback/memoji-2.png";
+import memoji3 from "@/assets/feedback/memoji-3.png";
 
 // --- Mock Data ---
 // Mock profile: http://localhost:5173/profile/any-id-works
@@ -26,7 +30,7 @@ const MOCK_USER_DATA: UserProfile = {
       location: "Fiscardo to Ithaca, Greece",
       vessel: "52m (171ft) Motor Yacht",
       date: "2025-09-12T00:00:00Z",
-      // I'll use a placeholder for the map image
+      // use a placeholder for the map image
       icon: "https://placehold.co/100x100/E0E0E0/B0B0B0?text=Map",
     },
   ],
@@ -34,6 +38,13 @@ const MOCK_USER_DATA: UserProfile = {
   skills: "Description....",
   feedback: ["Comments...."],
 };
+
+// --- NEW MOCK DATA FOR FEEDBACK AVATARS ---
+const mockFeedbackAvatars = [
+  { id: 1, avatarSrc: memoji1, className: "bg-red-500" },
+  { id: 2, avatarSrc: memoji2, className: "bg-green-500" },
+  { id: 3, avatarSrc: memoji3, className: "bg-yellow-500" },
+];
 
 // --- Child Component ---
 // Updated to match the Figma design
@@ -168,6 +179,8 @@ const Profile: React.FC = () => {
             {user.experiences.map((exp) => (
               <ExperienceEntry key={exp.id} experience={exp} />
             ))}
+            {/*  AvatarStack  */}
+            <AvatarStack data={mockFeedbackAvatars} />
           </div>
         </article>
         <hr className="border-gray-100" />
@@ -202,13 +215,16 @@ const Profile: React.FC = () => {
 
         {/* Feedback */}
         <section>
-          <h3 className="mb-2 text-lg font-semibold">Feedback</h3>
-          <div className="flex flex-col gap-2">
-            {user.feedback.map((f, i) => (
-              <p key={i} className="text-sm text-gray-600">
-                {f}
-              </p>
-            ))}
+          <h3 className="mb-3 text-lg font-semibold">Feedback</h3>
+          <div className="flex flex-col gap-4">
+            {/* Keep the original text comments */}
+            <div className="flex flex-col gap-2">
+              {user.feedback.map((f, i) => (
+                <p key={i} className="text-sm text-gray-600">
+                  {f}
+                </p>
+              ))}
+            </div>
           </div>
         </section>
       </section>
