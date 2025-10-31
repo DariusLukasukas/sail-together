@@ -1,5 +1,3 @@
-// src/types/user.ts
-
 // A type for a single experience log entry
 export type UserExperience = {
   id: string;
