@@ -189,12 +189,15 @@ export default function FilterBar({
   };
 
   return (
-    <div ref={containerRef} className="relative mx-auto flex max-w-2xl flex-col items-center">
+    <div
+      ref={containerRef}
+      className="relative mx-auto flex w-full max-w-3xl flex-col items-center"
+    >
       <div
         role="tablist"
         aria-label="Search filters"
         tabIndex={-1}
-        className="flex w-full grid-cols-4 items-center gap-2 rounded-full bg-neutral-200 p-1.5"
+        className="grid w-full grid-cols-4 items-center gap-2 rounded-full bg-neutral-200 p-1.5"
       >
         {NAV.map((step, i) => {
           const isTabActive = state.isOpen && state.stepIndex === i;
@@ -208,9 +211,8 @@ export default function FilterBar({
               aria-controls={panelId}
               aria-selected={isTabActive}
               type="button"
-              disabled={disabled}
               className={cn(
-                "focus-visible:border-ring flex items-center rounded-full px-3 py-1.5 font-medium whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                "focus-visible:border-ring flex justify-start truncate rounded-full px-3 py-1.5 font-medium outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
                 isTabActive ? "bg-black text-white" : "text-primary hover:bg-accent/80"
               )}
               onClick={() => !disabled && dispatch({ type: "TOGGLE_TAB", index: i })}
@@ -224,9 +226,9 @@ export default function FilterBar({
         })}
 
         <button
-          disabled={!canSearch || disabled}
+          disabled={!canSearch}
           onClick={handleSearch}
-          className="ml-auto w-auto rounded-full bg-blue-500 px-3 py-1.5 font-medium text-white disabled:pointer-events-none disabled:opacity-50"
+          className="rounded-full bg-blue-500 px-3 py-1.5 font-medium text-white disabled:pointer-events-none disabled:opacity-50"
         >
           Search
         </button>
@@ -250,7 +252,7 @@ export default function FilterBar({
                           key={loc.location}
                           type="button"
                           tabIndex={0}
-                          className="hover:bg-secondary focus-visible:border-ring flex w-full flex-row gap-4 rounded-2xl p-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                          className="hover:bg-secondary focus-visible:border-ring flex w-full flex-row gap-4 rounded-md p-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                           onClick={() => {
                             const next = state.location === loc.location ? null : loc.location;
                             dispatch({ type: "SET_LOCATION", value: next });
@@ -276,7 +278,7 @@ export default function FilterBar({
                       key={type.profession}
                       type="button"
                       tabIndex={0}
-                      className="hover:bg-secondary focus-visible:border-ring flex flex-row gap-4 rounded-2xl p-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      className="hover:bg-secondary focus-visible:border-ring flex flex-row gap-4 rounded-md p-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                       onClick={() => {
                         const next = state.position === type.profession ? null : type.profession;
                         dispatch({ type: "SET_POSITION", value: next });

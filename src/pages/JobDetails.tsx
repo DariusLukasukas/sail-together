@@ -1,6 +1,5 @@
 import { useLocation } from "react-router-dom";
 import { Heart, Clock, CalendarDays, Ship, MapPin, X, Link2, Mail } from "lucide-react";
-import FilterBar from "@/components/FilterBar";
 import { Button } from "@/components/ui/Button";
 import { useState } from "react";
 import { useEffect } from "react";
@@ -35,10 +34,7 @@ export default function JobDetails() {
 
   return (
     <div>
-      <div className="flex justify-center py-6">
-        <FilterBar disabled />
-      </div>
-      <div className="px-24">
+      <div className="px-24 py-6">
         <div className="flex flex-col gap-4">
           <div className="flex flex-row gap-2.5">
             <div className="relative size-24 rounded-3xl bg-neutral-300">
@@ -70,16 +66,14 @@ export default function JobDetails() {
             <div className="ml-auto flex flex-col gap-4">
               <span className="flex gap-2">
                 <Button
-                  className="rounded-xl hover:bg-neutral-300"
-                  variant={"filter"}
+                  className="rounded-xl bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
                   size={"default"}
                   onClick={() => setShareOpen(true)}
                 >
                   Share
                 </Button>
                 <Button
-                  className="rounded-xl"
-                  variant={"action"}
+                  className="rounded-xl bg-green-500 text-white hover:bg-green-600"
                   size={"default"}
                   onClick={() => setApplyOpen(true)}
                 >
@@ -90,7 +84,7 @@ export default function JobDetails() {
           </div>
 
           {/* Description sections */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4">
             <div>
               <div className="mb-1 font-medium">Job description</div>
               <div className="text-sm">{job.jobDescription}</div>
@@ -200,7 +194,11 @@ export default function JobDetails() {
                     Click here to upload or drop files here*
                   </label>
                 </div>
-                <Button type="submit" variant="action" className="w-full rounded-xl">
+                <Button
+                  type="submit"
+                  size="default"
+                  className="w-full rounded-xl bg-green-500 text-white hover:bg-green-600"
+                >
                   Apply
                 </Button>
               </form>
