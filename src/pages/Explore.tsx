@@ -60,13 +60,13 @@ export default function Explore() {
   }, []);
 
   return (
-    <main className="mx-auto flex max-w-2xl flex-col items-center px-4 pt-6 pb-24">
-      <header className="mb-6 w-full text-center">
+    <div className="mx-auto flex max-w-2xl flex-col items-center px-4 pt-6 pb-24">
+      <div className="mb-6 w-full text-center">
         <h1 className="text-2xl font-semibold tracking-tight">Your feed</h1>
         <p className="text-muted-foreground text-sm">See news from friends</p>
-      </header>
+      </div>
 
       <Feed initialPosts={posts} />
-    </main>
+    </div>
   );
 }

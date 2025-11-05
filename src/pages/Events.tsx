@@ -1,7 +1,7 @@
 import type { Event } from "@/types/event";
-import SearchEvent from "@/components/SearchEvent";
-import Map from "@/components/Map";
-import EventSidebar from "./EventSidebar";
+import SearchEvent from "@/components/searchbar/SearchEvent";
+import Map from "@/components/map/Map";
+import EventSidebar from "@/components/EventSidebar";
 import { eventsToGeoJson } from "@/lib/eventsToGeoJSON";
 import { useMemo, useState } from "react";
 
@@ -57,7 +57,8 @@ const EVENTS: Event[] = [
 ];
 
 export default function Events() {
-  const [events, setEvents] = useState(EVENTS);
+  const [events, setEvents] = useState<Event[]>(EVENTS);
+
   const eventsGeoJSON = useMemo(() => eventsToGeoJson(events), [events]);
 
   return (

@@ -49,7 +49,7 @@ export default function Map({ events }: MapProps) {
     if (!selectedMarker) return;
     mapRef.current!.flyTo({
       center: [selectedMarker.geometry.coordinates[0], selectedMarker.geometry.coordinates[1]],
-      zoom: 10,
+      zoom: 12,
       duration: 1000,
     });
   }, [selectedMarker]);
@@ -75,9 +75,9 @@ export default function Map({ events }: MapProps) {
     <div className="relative h-full w-full grow overflow-hidden rounded-2xl">
       <div ref={mapContainerRef} className="absolute inset-0 h-full w-full" />
       {mapLoaded &&
-        events.features.map((location, i) => (
+        events.features.map((location) => (
           <Marker
-            key={`location-${i}`}
+            key={location.properties.id}
             feature={location}
             map={mapRef.current!}
             selectedMarker={selectedMarker}

@@ -1,7 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
-// Define the types right in the same file
 interface AvatarItem {
   id: number | string;
   avatarSrc: string;
@@ -14,7 +13,6 @@ interface AvatarStackProps {
   overlap?: string;
 }
 
-// Export the component (as default or named)
 export function AvatarStack({ data, size = "size-10", overlap = "-space-x-3" }: AvatarStackProps) {
   return (
     <div className={cn("flex", overlap)}>
@@ -32,5 +30,4 @@ export function AvatarStack({ data, size = "size-10", overlap = "-space-x-3" }: 
   );
 }
 
-// Export as default for easier importing
 export default AvatarStack;
