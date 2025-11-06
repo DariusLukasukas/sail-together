@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import FilterBar from "@/components/FilterBar";
 import { CalendarDays, Heart, Clock, Ship, MapPin } from "lucide-react";
-import type { Filters } from "@/components/FilterBar";
 import type { Job } from "@/types/job";
+import SearchJobs from "@/components/searchbar/SearchJobs";
 
 const JOBS: Job[] = [
   {
@@ -15,7 +14,8 @@ const JOBS: Job[] = [
     vessel: "38m (125ft) Motor Yacht",
     location: "Caribbean",
     inMapArea: true,
-    jobDescription: "We are looking for an engineer to join a 38m M/Y. Vessel will be crossing from Caribbean to Mediterranean for season early December. Joining a team of 2 rotational chief engineers and a permanent 2nd engineer. The role will require work on deck during guest trips and mooring operation. This works out to be approx. 80/20 Engine Room/Deck. Responsible for maintaining and repairing the yacht's mechanical and electrical systems.",
+    jobDescription:
+      "We are looking for an engineer to join a 38m M/Y. Vessel will be crossing from Caribbean to Mediterranean for season early December. Joining a team of 2 rotational chief engineers and a permanent 2nd engineer. The role will require work on deck during guest trips and mooring operation. This works out to be approx. 80/20 Engine Room/Deck. Responsible for maintaining and repairing the yacht's mechanical and electrical systems.",
     requirements: [
       "Proven experience as a marine engineer.",
       "Knowledge of mechanical and electrical systems.",
@@ -28,7 +28,7 @@ const JOBS: Job[] = [
       "MCA Approved Engine Course (AEC 1 & 2) Certificate",
       "GMDSS Certification",
       "Relevant maritime visas.",
-    ]
+    ],
   },
   {
     id: 2,
@@ -39,7 +39,8 @@ const JOBS: Job[] = [
     vessel: "52m (171ft) Motor Yacht",
     location: "U.S Virgin Islands",
     inMapArea: true,
-    jobDescription: "Great opportunity for a chief stewardess on a newbuild 52m private motor yacht. Candidate must be professional, well organised and demonstrate good leadership skills. The candidate will be expected to manage all areas of the interior department and liaise with the owners private chef when required. During the 3 month trial period candidate will work 2-4 weeks at owners winter villa to join his permanent team to give the candidate the opportunity get to know the owner and his family and vice versa.",
+    jobDescription:
+      "Great opportunity for a chief stewardess on a newbuild 52m private motor yacht. Candidate must be professional, well organised and demonstrate good leadership skills. The candidate will be expected to manage all areas of the interior department and liaise with the owners private chef when required. During the 3 month trial period candidate will work 2-4 weeks at owners winter villa to join his permanent team to give the candidate the opportunity get to know the owner and his family and vice versa.",
     requirements: [
       "Responsible for providing excellent service to guests and maintaining the interior of the yacht.",
       "Previous experience in a similar role.",
@@ -62,7 +63,8 @@ const JOBS: Job[] = [
     vessel: "60m (197ft) Motor Yacht",
     location: "Bahamas",
     inMapArea: false,
-    jobDescription: "We are seeking an experienced Captain to oversee the operation and navigation of a 60-meter motor yacht. The ideal candidate will have a strong background in maritime operations, excellent leadership skills, and a commitment to safety and customer service.",
+    jobDescription:
+      "We are seeking an experienced Captain to oversee the operation and navigation of a 60-meter motor yacht. The ideal candidate will have a strong background in maritime operations, excellent leadership skills, and a commitment to safety and customer service.",
     requirements: [
       "Valid captain's license and certifications.",
       "Extensive experience in yacht navigation and operations.",
@@ -88,7 +90,8 @@ const JOBS: Job[] = [
     vessel: "45m (148ft) Motor Yacht",
     location: "Caribbean",
     inMapArea: true,
-    jobDescription: "We are looking for a talented and experienced chef to join a 45m motor yacht. The ideal candidate will have a passion for culinary arts, experience in high-end dining, and the ability to cater to diverse dietary needs while at sea. The owners are very health-conscious and follow a specific dietary routine, often requesting certain products, ingredients, or cooking styles. The Chef must be flexible, creative, and willing to adapt to their preferences while maintaining the highest standards of presentation and nutrition. Excellent knowledge of gluten-free (GF) options, balanced menus, and fresh, seasonal cuisine is essential. You should be comfortable catering for daily family-style meals, light healthy lunches, and refined dinner service when required.",
+    jobDescription:
+      "We are looking for a talented and experienced chef to join a 45m motor yacht. The ideal candidate will have a passion for culinary arts, experience in high-end dining, and the ability to cater to diverse dietary needs while at sea. The owners are very health-conscious and follow a specific dietary routine, often requesting certain products, ingredients, or cooking styles. The Chef must be flexible, creative, and willing to adapt to their preferences while maintaining the highest standards of presentation and nutrition. Excellent knowledge of gluten-free (GF) options, balanced menus, and fresh, seasonal cuisine is essential. You should be comfortable catering for daily family-style meals, light healthy lunches, and refined dinner service when required.",
     requirements: [
       "Proven experience as a yacht chef or in a similar role.",
       "Ability to create diverse and high-quality menus.",
@@ -100,7 +103,7 @@ const JOBS: Job[] = [
       "STCW 95 (STCW 2010)",
       "ENG1 (Medical Certificate)",
       "Food and Hygiene Level 2",
-      "Must hold B1/B2 and Schengen visas"
+      "Must hold B1/B2 and Schengen visas",
     ],
   },
   {
@@ -112,7 +115,8 @@ const JOBS: Job[] = [
     vessel: "30m (98ft) Motor Yacht",
     location: "Mediterranean",
     inMapArea: false,
-    jobDescription: "We seek an experienced Deck-engineer to work on a 30 meter yacht. Responsible for maintaining the exterior of the yacht and assisting with docking and undocking procedures.",
+    jobDescription:
+      "We seek an experienced Deck-engineer to work on a 30 meter yacht. Responsible for maintaining the exterior of the yacht and assisting with docking and undocking procedures.",
     requirements: [
       "Previous experience as a deckhand.",
       "Knowledge of boat maintenance and cleaning.",
@@ -132,54 +136,17 @@ const JOBS: Job[] = [
 
 export default function Home() {
   const [jobs, setJobs] = useState(JOBS);
-  const [filters, setFilters] = useState<Filters | null>(null);
-
-  function onFiltersSearch(next: Filters) {
-    setFilters(next);
-  }
-
-  const toggleFavorite = (id: number) => {
-    setJobs((prevJobs) =>
-      prevJobs.map((job) => (job.id === id ? { ...job, favorite: !job.favorite } : job))
-    );
-  };
-
-  const filteredJobs = jobs.filter((job) => {
-    if (filters?.location) {
-      if (filters.location === "Jobs in map area") {
-        if (!job.inMapArea) return false;
-      } else if (filters.location !== "All locations") {
-        if (!job.location?.includes(filters.location)) return false;
-      }
-    }
-
-    if (filters?.position) {
-      if (filters.position !== "All positions") {
-        if (!job.title.toLowerCase().includes(filters.position.toLowerCase())) return false;
-      }
-    }
-
-    return true;
-  });
-
-  const jobCount = filteredJobs.length;
-  const displayText =
-    filters?.location === "Jobs in map area"
-      ? `${jobCount} Jobs within map area`
-      : `${jobCount} Total positions`;
 
   return (
-    <div>
-      <div className="flex justify-center py-6">
-        <FilterBar onSearch={onFiltersSearch} />
-      </div>
+    <>
+      <SearchJobs />
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-2">
-          <div>{displayText}</div>
+          <div>{jobs.length} Jobs</div>
 
           {/* JOBS LIST */}
           <ul className="flex flex-col gap-2.5" role="list">
-            {filteredJobs.map((job) => (
+            {jobs.map((job) => (
               <li key={job.id} role="listitem">
                 <Link
                   to={`/jobs/${job.id}`}
@@ -194,14 +161,14 @@ export default function Home() {
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        toggleFavorite(job.id);
                       }}
                     >
                       <Heart
-                        className={`absolute top-2.5 right-2.5 cursor-pointer transition ${job.favorite
-                          ? "fill-red-500 text-red-500"
-                          : "fill-neutral-400 text-neutral-400"
-                          }`}
+                        className={`absolute top-2.5 right-2.5 cursor-pointer transition ${
+                          job.favorite
+                            ? "fill-red-500 text-red-500"
+                            : "fill-neutral-400 text-neutral-400"
+                        }`}
                       />
                     </button>
                   </div>
@@ -236,6 +203,6 @@ export default function Home() {
           <div className="h-screen w-full rounded-4xl bg-neutral-200" />
         </div>
       </div>
-    </div>
+    </>
   );
 }

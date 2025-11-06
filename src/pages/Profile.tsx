@@ -1,13 +1,13 @@
 import React from "react";
 import { format } from "date-fns";
-import type { UserProfile, UserExperience } from "../types/user";
-import avatarImage from "../assets/avatar.png";
-import { Star, MapPin, Briefcase, Ship, CalendarDays, User, Radio } from "lucide-react"; //
-import AvatarStack from "@/components/ui/AvatarStack";
+import type { UserProfile, UserExperience } from "@/types/user";
+import avatarImage from "@/assets/avatar.png";
+import { Star, MapPin, Briefcase, Ship, CalendarDays, User, Radio } from "lucide-react";
+import AvatarStack from "@/components/ui/avatar-stack";
 import memoji1 from "@/assets/feedback/memoji-1.png";
 import memoji2 from "@/assets/feedback/memoji-2.png";
+import { Button } from "@/components/ui/button";
 import memoji3 from "@/assets/feedback/memoji-3.png";
-import { Button } from "@/components/ui/Button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const MOCK_USER_DATA: UserProfile = {
@@ -101,7 +101,7 @@ const StarRating = ({ rating }: { rating: number }) => {
 const Profile: React.FC = () => {
   const user = MOCK_USER_DATA;
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-col items-start gap-6 px-4 py-6">
+    <div className="mx-auto flex w-full max-w-xl flex-col items-start gap-6 px-4 py-6">
       {/* Profile Card Section */}
       <section className="flex w-full flex-col items-center gap-2 p-6">
         <Avatar className="size-24 rounded-3xl bg-[#FFC7D6]">
@@ -214,7 +214,7 @@ const Profile: React.FC = () => {
           </div>
         </section>
       </section>
-    </main>
+    </div>
   );
 };
 

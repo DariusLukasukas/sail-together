@@ -1,19 +1,17 @@
 import { useLocation } from "react-router-dom";
 import { Heart, Clock, CalendarDays, Ship, MapPin, X, Link2, Mail } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useEffect } from "react";
 import type { Job } from "@/types/job";
 
-export default function JobDetails() {
+export default function JobPage() {
   const location = useLocation();
   const jobFromState = (location.state as { job?: Job } | null)?.job;
   const [applyOpen, setApplyOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
   const job: Job | null = jobFromState ?? null;
-
-  if (!job) return null;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -31,6 +29,8 @@ export default function JobDetails() {
       document.body.classList.remove("overflow-hidden");
     };
   }, [applyOpen, shareOpen]);
+
+  if (!job) return null;
 
   return (
     <div>

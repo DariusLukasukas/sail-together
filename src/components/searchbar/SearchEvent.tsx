@@ -241,7 +241,7 @@ export default function SearchEvent() {
           aria-labelledby={`tab-${activeTab.toLowerCase()}`}
           className="bg-card absolute top-full z-40 mt-2 w-full overflow-hidden rounded-3xl py-6 shadow-lg inset-shadow-2xs"
         >
-          <div className="h-full max-h-96 w-full overflow-y-auto">
+          <div className="h-full max-h-96 w-full overflow-y-auto overscroll-contain">
             {activeTab === "Where" && (
               <div className="flex flex-col gap-4 px-6">
                 <div>
