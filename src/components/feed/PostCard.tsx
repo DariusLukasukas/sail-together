@@ -1,4 +1,3 @@
-// components/feed/PostCard.tsx
 import type { Post } from "../../types/post";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/Button";
@@ -10,113 +9,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
 
+/** Props to PostCard. */
 type PostCardProps = { post: Post };
 
-export function PostCard({ post }: PostCardProps) {
-  const [liked, setLiked] = useState(post.hasLiked);
-  const [likeCount, setLikeCount] = useState(post.likeCount);
-
-  async function toggleLike() {
-    setLiked((v) => !v);
-    setLikeCount((c) => (liked ? c - 1 : c + 1));
-  }
-
-  return (
-    <article className="rounded-3xl bg-white/70 p-3 shadow-sm ring-1 ring-black/5 backdrop-blur">
-      {/* Header */}
-      <header className="flex items-center gap-3 px-2 py-1">
-        <Avatar className="h-8 w-8">
-          <AvatarImage src={post.user.avatarUrl} alt={post.user.name} />
-          <AvatarFallback>
-            {post.user.name
-              .split(" ")
-              .map((s) => s[0]?.toUpperCase())
-              .slice(0, 2)
-              .join("")}
-          </AvatarFallback>
-        </Avatar>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="truncate font-medium">{post.user.name}</p>
-            {post.location?.name && (
-              <span className="truncate text-xs text-gray-500">• {post.location.name}</span>
-            )}
-          </div>
-          <p className="text-xs text-gray-400">{timeAgo(post.createdAt)}</p>
-        </div>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              aria-label="More options"
-              className="rounded-xl p-2 hover:bg-black/5"
-            >
-              &#8226;&#8226;&#8226;
-            </button>
-          </DropdownMenuTrigger>
-
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onSelect={() => {
-                // Kræver https/localhost for at virke i browseren
-                void navigator.clipboard.writeText(`/post/${post.id}`);
-              }}
-            >
-              Copy link
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onSelect={() => {
-                /* TODO: report */
-              }}
-            >
-              Report an issue
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </header>
-
-      {/* Media */}
-      <figure className="mt-2 overflow-hidden rounded-2xl">
-        <img
-          src={post.mediaUrl}
-          alt={post.mediaAlt ?? "Sail Away post"}
-          className="h-auto w-full"
-          loading="lazy"
-        />
-      </figure>
-
-      {/* Actions */}
-      <div className="mt-3 flex items-center gap-3 px-2">
-        <Button variant="ghost" aria-pressed={liked} onClick={toggleLike}>
-          {liked ? "♥︎" : "♡"} Like
-        </Button>
-        <Button variant="ghost">Comment</Button>
-        <Button variant="ghost">↗ Share</Button>
-        <span className="ml-auto text-sm text-gray-500">
-          {likeCount} likes · {post.commentCount} comments
-        </span>
-      </div>
-
-      {/* Comments preview */}
-      {post.commentsPreview?.length ? (
-        <ul className="mt-2 space-y-1 px-2">
-          {post.commentsPreview.map((c) => (
-            <li key={c.id} className="text-sm">
-              <span className="font-medium">{c.user.name}</span>{" "}
-              <span className="text-gray-700">{c.text}</span>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-
-      {/* Comment input – kan aktiveres via state */}
-      {/* <CommentInput postId={post.id} /> */}
-    </article>
-  );
+/** Returnerer up to two initials. */
+function getUserName(name: string) {
+  return name
+    .trim()
+    .split(" ")
+    .map(s => s[0]?.toUpperCase() ?? "")
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("");
 }
 
+/** Relative time being tracked. */
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const minutes = Math.floor(diff / 60000);
@@ -126,4 +33,127 @@ function timeAgo(iso: string) {
   if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
   const days = Math.floor(hours / 24);
   return `${days} day${days > 1 ? "s" : ""} ago`;
+}
+
+export function PostCard({ post }: PostCardProps) {
+  const {
+    user,
+    location,
+    mediaUrl,
+    mediaAlt,
+    createdAt,
+    likeCount: initialLikes,
+    hasLiked,
+    commentCount
+  } = post;
+
+  const [liked, setLiked] = useState(hasLiked);
+  const [likeCount, setLikeCount] = useState(initialLikes);
+
+  // Updating UI likes live, as the user interacts.
+  function toggleLike() {
+    if (liked) {
+      setLiked(false);
+      setLikeCount(c => c - 1);
+    } else {
+      setLiked(true);
+      setLikeCount(c => c + 1);
+    }
+  }
+
+  return (
+    <article className="rounded-3xl bg-white/70 p-3 shadow-sm ring-1 ring-black/5 backdrop-blur">
+      <Header
+        name={user.name}
+        avatarUrl={user.avatarUrl}
+        locationName={location?.name}
+        createdAt={createdAt}
+      />
+
+      <figure className="mt-2 overflow-hidden rounded-2xl">
+        <img
+          src={mediaUrl}
+          alt={mediaAlt ?? "Sail Away post"}
+          className="h-auto w-full"
+          loading="lazy"
+        />
+      </figure>
+
+      <Actions
+        liked={liked}
+        likeCount={likeCount}
+        commentCount={commentCount}
+        onToggleLike={toggleLike}
+      />
+    </article>
+  );
+}
+
+/** Header (avatar, name, location, time and menu). */
+function Header(props: {
+  name: string;
+  avatarUrl: string;
+  locationName?: string;
+  createdAt: string;
+}) {
+  const { name, avatarUrl, locationName, createdAt } = props;
+
+  return (
+    <header className="flex items-center gap-3 px-2 py-1">
+      <Avatar className="h-8 w-8">
+        <AvatarImage src={avatarUrl} alt={name} />
+        <AvatarFallback>{getUserName(name)}</AvatarFallback>
+      </Avatar>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <p className="truncate font-medium">{name}</p>
+          {locationName && (
+            <span className="truncate text-xs text-gray-500">• {locationName}</span>
+          )}
+        </div>
+        <p className="text-xs text-gray-400">{timeAgo(createdAt)}</p>
+      </div>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label="More options"
+            className="rounded-xl p-2 hover:bg-black/5"
+          >
+            &#8226;&#8226;&#8226;
+          </button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem>Copy link</DropdownMenuItem>
+          <DropdownMenuItem>Report an issue</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </header>
+  );
+}
+
+/** Buttons and count under picture. */
+function Actions(props: {
+  liked: boolean;
+  likeCount: number;
+  commentCount: number;
+  onToggleLike: () => void;
+}) {
+  const { liked, likeCount, commentCount, onToggleLike } = props;
+
+  return (
+    <div className="mt-3 flex items-center gap-3 px-2">
+      <Button variant="ghost" aria-pressed={liked} onClick={onToggleLike}>
+        {liked ? "♥︎" : "♡"} Like
+      </Button>
+      <Button variant="ghost">Comment</Button>
+      <Button variant="ghost">↗ Share</Button>
+      <span className="ml-auto text-sm text-gray-500">
+        {likeCount} likes · {commentCount} comments
+      </span>
+    </div>
+  );
 }
