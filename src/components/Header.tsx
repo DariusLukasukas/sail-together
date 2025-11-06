@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import avatar from "@/assets/avatar.png";
+import { Button } from "./ui/button";
 
 const NAVIGATION = [
   { to: "/", label: "Home", end: true },
@@ -38,12 +39,17 @@ export default function Header() {
           </ul>
         </nav>
 
-        <NavLink to={"/profile"}>
-          <Avatar className="size-10 select-none">
-            <AvatarImage src={avatar} alt="profile avatar" />
-            <AvatarFallback>CL</AvatarFallback>
-          </Avatar>
-        </NavLink>
+        <div className="flex items-center gap-4">
+          <NavLink to={"/add-listing"}>
+            <Button variant={"secondary"}>Add Listing</Button>
+          </NavLink>
+          <NavLink to={"/profile"}>
+            <Avatar className="size-10 select-none">
+              <AvatarImage src={avatar} alt="profile avatar" />
+              <AvatarFallback>CL</AvatarFallback>
+            </Avatar>
+          </NavLink>
+        </div>
       </div>
     </header>
   );
