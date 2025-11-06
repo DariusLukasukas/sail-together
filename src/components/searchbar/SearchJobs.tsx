@@ -10,12 +10,11 @@ interface Location {
   location: string;
 }
 
-interface JobTypeOption {
+interface JobType {
   profession: string;
 }
 
 const LOCATIONS: Location[] = [
-  { location: "Jobs in map area" },
   { location: "All locations" },
   { location: "Atlantic Crossing" },
   { location: "Mediterranean" },
@@ -30,7 +29,7 @@ const LOCATIONS: Location[] = [
   { location: "Africa" },
 ];
 
-const JOB_TYPE_OPTIONS: JobTypeOption[] = [
+const JOB_TYPE_OPTIONS: JobType[] = [
   { profession: "All positions" },
   { profession: "Bosun" },
   { profession: "Captain" },
@@ -55,13 +54,12 @@ const JOB_TYPE_OPTIONS: JobTypeOption[] = [
   { profession: "Other" },
 ];
 
-const NAV = [
-  { label: "Jobs in map area", icon: <MapPin /> },
-  { label: "All positions", icon: <Briefcase /> },
-  { label: "Availability", icon: <CalendarClock /> },
+const STEPS = [
+  { label: "Where", icon: <MapPin /> },
+  { label: "What", icon: <Briefcase /> },
+  { label: "When", icon: <CalendarClock /> },
 ] as const;
-
-type Step = (typeof NAV)[number];
+type Step = (typeof STEPS)[number];
 
 type State = {
   isOpen: boolean;
@@ -99,7 +97,7 @@ function reducer(state: State, action: Action) {
       }
       return { ...state, isOpen: true, stepIndex: action.index };
     case "NEXT_STEP":
-      return { ...state, stepIndex: Math.min(state.stepIndex + 1, NAV.length - 1) };
+      return { ...state, stepIndex: Math.min(state.stepIndex + 1, STEPS.length - 1) };
     case "SET_LOCATION":
       return { ...state, location: action.value };
     case "SET_POSITION":
@@ -112,7 +110,7 @@ function reducer(state: State, action: Action) {
 }
 
 function labelForRange(r?: DateRange) {
-  if (!r?.from) return "Availability";
+  if (!r?.from) return "When";
   if (!r.to || r.to.getTime() === r.from.getTime()) return format(r.from, "dd MMM");
   const sameMonth = format(r.from, "MMM") === format(r.to, "MMM");
   return sameMonth
@@ -120,13 +118,7 @@ function labelForRange(r?: DateRange) {
     : `${format(r.from, "d MMM")}–${format(r.to, "d MMM")}`;
 }
 
-export default function FilterBar({
-  onSearch,
-  disabled = false,
-}: {
-  onSearch?: (filters: Filters) => void;
-  disabled?: boolean;
-}) {
+export default function SearchJobs() {
   const [state, dispatch] = useReducer(reducer, {
     isOpen: false,
     stepIndex: 0,
@@ -135,24 +127,25 @@ export default function FilterBar({
     availability: undefined,
   });
 
-  useEffect(() => {
-    onSearch?.({
-      location: state.location,
-      position: state.position,
-      availability: state.availability,
-      activeTab: NAV[state.stepIndex].label,
-    });
-  }, [state.location, state.position, state.availability, state.stepIndex]);
-
-  const handleSearch = () => {
-    const filters: Filters = {
-      location: state.location,
-      position: state.position,
-      availability: state.availability,
-      activeTab: NAV[state.stepIndex].label,
-    };
-    onSearch?.(filters);
+  const containerRef = useClickAway<HTMLDivElement>(() => {
     dispatch({ type: "CLOSE" });
+  });
+
+  const activeTab: Step = STEPS[state.stepIndex];
+
+  const tabLabel = (step: Step) => {
+    switch (step.label) {
+      case "Where":
+        return state.location ?? "Where";
+      case "What":
+        return (
+          JOB_TYPE_OPTIONS.find((type) => type.profession === state.position)?.profession ?? "What"
+        );
+      case "When":
+        return labelForRange(state.availability) ?? "When";
+      default:
+        return "";
+    }
   };
 
   useEffect(() => {
@@ -166,28 +159,6 @@ export default function FilterBar({
 
   const canSearch = !!state.location && !!state.position && !!state.availability?.from;
 
-  const containerRef = useClickAway<HTMLDivElement>(() => {
-    dispatch({ type: "CLOSE" });
-  });
-
-  const activeTab: Step = NAV[state.stepIndex];
-
-  const tabLabel = (step: Step) => {
-    switch (step.label) {
-      case "Jobs in map area":
-        return state.location ?? "Jobs in map area";
-      case "All positions":
-        return (
-          JOB_TYPE_OPTIONS.find((type) => type.profession === state.position)?.profession ??
-          "All positions"
-        );
-      case "Availability":
-        return labelForRange(state.availability) ?? "Availability";
-      default:
-        return "";
-    }
-  };
-
   return (
     <div
       ref={containerRef}
@@ -199,7 +170,7 @@ export default function FilterBar({
         tabIndex={-1}
         className="grid w-full grid-cols-4 items-center gap-2 rounded-full bg-neutral-200 p-1.5"
       >
-        {NAV.map((step, i) => {
+        {STEPS.map((step, i) => {
           const isTabActive = state.isOpen && state.stepIndex === i;
           const tabId = `tab-${step.label.toLowerCase()}`;
           const panelId = `panel-${step.label.toLowerCase()}`;
@@ -215,7 +186,7 @@ export default function FilterBar({
                 "focus-visible:border-ring flex justify-start truncate rounded-full px-3 py-1.5 font-medium outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
                 isTabActive ? "bg-black text-white" : "text-primary hover:bg-accent/80"
               )}
-              onClick={() => !disabled && dispatch({ type: "TOGGLE_TAB", index: i })}
+              onClick={() => dispatch({ type: "TOGGLE_TAB", index: i })}
             >
               <span className="inline-flex items-center gap-2">
                 {step.icon}
@@ -227,7 +198,7 @@ export default function FilterBar({
 
         <button
           disabled={!canSearch}
-          onClick={handleSearch}
+          onClick={() => dispatch({ type: "CLOSE" })}
           className="rounded-full bg-blue-500 px-3 py-1.5 font-medium text-white disabled:pointer-events-none disabled:opacity-50"
         >
           Search
@@ -241,8 +212,8 @@ export default function FilterBar({
           aria-labelledby={`tab-${activeTab.label.toLowerCase()}`}
           className="bg-card absolute top-full z-40 mt-2 w-full overflow-hidden rounded-3xl py-6 shadow-lg inset-shadow-2xs"
         >
-          <div className="h-full max-h-96 w-full overflow-y-auto">
-            {activeTab.label === "Jobs in map area" && (
+          <div className="h-full max-h-96 w-full overflow-y-auto overscroll-contain">
+            {activeTab.label === "Where" && (
               <div className="flex flex-col gap-4 px-6">
                 <div>
                   <div className="flex flex-col gap-0.5 py-1">
@@ -270,7 +241,7 @@ export default function FilterBar({
               </div>
             )}
 
-            {activeTab.label === "All positions" && (
+            {activeTab.label === "What" && (
               <div className="flex flex-col px-6">
                 <div className="flex flex-col gap-0.5 py-1">
                   {JOB_TYPE_OPTIONS.map((type) => (
@@ -294,7 +265,7 @@ export default function FilterBar({
               </div>
             )}
 
-            {activeTab.label === "Availability" && (
+            {activeTab.label === "When" && (
               <WhenPanel
                 value={state.availability}
                 onChange={(range) => dispatch({ type: "SET_AVAILABILITY", value: range })}

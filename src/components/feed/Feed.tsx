@@ -1,4 +1,4 @@
-import type { Post } from "../../types/post";
+import type { Post } from "@/types/post";
 import { PostCard } from "./PostCard";
 
 type FeedProps = { initialPosts?: Post[]; isLoading?: boolean; error?: string | null };
