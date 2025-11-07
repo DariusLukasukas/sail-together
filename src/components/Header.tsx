@@ -15,9 +15,7 @@ export default function Header() {
   return (
     <header className="bg-background sticky top-0 z-50 w-full py-2">
       <div className="flex flex-row items-center">
-        <div aria-hidden className="sr-only size-10" />
-
-        <nav aria-label="Primary" className="mx-auto">
+        <nav aria-label="Primary" className="absolute left-1/2 -translate-x-1/2">
           <ul className="flex list-none gap-0.5">
             {NAVIGATION.map(({ to, label, end }) => (
               <li key={to}>
@@ -39,7 +37,7 @@ export default function Header() {
           </ul>
         </nav>
 
-        <div className="flex items-center gap-4">
+        <div className="ml-auto flex items-center gap-4">
           <NavLink to={"/add-listing"}>
             <Button variant={"secondary"}>Add Listing</Button>
           </NavLink>

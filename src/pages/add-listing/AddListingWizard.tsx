@@ -164,7 +164,7 @@ export default function AddListingWizard() {
       </div>
 
       <div className="bg-background sticky bottom-0 w-full">
-        <div className="mx-auto flex max-w-3xl flex-col gap-2 px-4 py-3">
+        <div className="mx-auto flex flex-col gap-2 px-4 py-3">
           <div className="flex w-full items-center gap-1">
             {QUESTIONS.map((q, i) => {
               const answered = isAnswered(q, answers[q.id]);
