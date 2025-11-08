@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { CalendarDays, Heart, Clock, Ship, MapPin } from "lucide-react";
 import type { Job } from "@/types/job";
 import SearchJobs from "@/components/searchbar/SearchJobs";
+import JobsSidebar from "@/components/JobsSidebar";
 
 const JOBS: Job[] = [
   {
@@ -11,7 +10,7 @@ const JOBS: Job[] = [
     title: "Engineer",
     type: "Permanent",
     date: "1th Dec 2025",
-    vessel: "38m (125ft) Motor Yacht",
+    vessel: "38m Motor Yacht",
     location: "Caribbean",
     inMapArea: true,
     jobDescription:
@@ -36,7 +35,7 @@ const JOBS: Job[] = [
     title: "Chief Steward(ess)",
     type: "Permanent",
     date: "15th Nov 2025",
-    vessel: "52m (171ft) Motor Yacht",
+    vessel: "52m Motor Yacht",
     location: "U.S Virgin Islands",
     inMapArea: true,
     jobDescription:
@@ -60,7 +59,7 @@ const JOBS: Job[] = [
     title: "Captain",
     type: "Permanent",
     date: "1th Dec 2025",
-    vessel: "60m (197ft) Motor Yacht",
+    vessel: "60m Motor Yacht",
     location: "Bahamas",
     inMapArea: false,
     jobDescription:
@@ -87,7 +86,7 @@ const JOBS: Job[] = [
     title: "Chef",
     type: "Permanent",
     date: "15th Nov 2025",
-    vessel: "45m (148ft) Motor Yacht",
+    vessel: "45m Motor Yacht",
     location: "Caribbean",
     inMapArea: true,
     jobDescription:
@@ -112,7 +111,7 @@ const JOBS: Job[] = [
     title: "Deckhand",
     type: "Permanent",
     date: "20th Nov 2025",
-    vessel: "30m (98ft) Motor Yacht",
+    vessel: "30m Motor Yacht",
     location: "Mediterranean",
     inMapArea: false,
     jobDescription:
@@ -140,68 +139,11 @@ export default function Home() {
   return (
     <>
       <SearchJobs />
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-2">
-          <div>{jobs.length} Jobs</div>
 
-          {/* JOBS LIST */}
-          <ul className="flex flex-col gap-2.5" role="list">
-            {jobs.map((job) => (
-              <li key={job.id} role="listitem">
-                <Link
-                  to={`/jobs/${job.id}`}
-                  state={{ job }}
-                  aria-label={`View details for ${job.title}`}
-                  className="flex flex-row gap-2.5"
-                >
-                  <div className="relative size-24 rounded-3xl bg-neutral-300">
-                    <button
-                      aria-label={job.favorite ? "Remove from favorites" : "Add to favorites"}
-                      aria-pressed={job.favorite}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                    >
-                      <Heart
-                        className={`absolute top-2.5 right-2.5 cursor-pointer transition ${
-                          job.favorite
-                            ? "fill-red-500 text-red-500"
-                            : "fill-neutral-400 text-neutral-400"
-                        }`}
-                      />
-                    </button>
-                  </div>
-                  <div className="flex flex-col justify-between py-2">
-                    <h2 className="font-semibold">{job.title}</h2>
-                    <div className="flex items-center gap-x-4">
-                      <p className="flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5 text-neutral-400" /> <span>{job.type}</span>
-                      </p>
-                      <p className="flex items-center gap-1">
-                        <CalendarDays className="h-3.5 w-3.5 text-neutral-400" />
-                        <span>{job.date}</span>
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-x-4">
-                      <p className="flex items-center gap-1">
-                        <Ship className="h-3.5 w-3.5 text-neutral-400" /> <span>{job.vessel}</span>
-                      </p>
-                      <p className="flex items-center gap-1">
-                        <MapPin className="h-3.5 w-3.5 text-neutral-400" />
-                        <span>{job.location}</span>
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-        {/* MAP */}
-        <div>
-          <div className="h-screen w-full rounded-4xl bg-neutral-200" />
-        </div>
+      <div className="relative grid grid-cols-1 gap-6 md:grid-cols-2">
+        <aside className="flex flex-col gap-4">
+          <JobsSidebar jobs={jobs} />
+        </aside>
       </div>
     </>
   );

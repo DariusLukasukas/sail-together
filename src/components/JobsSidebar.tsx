@@ -1,0 +1,80 @@
+import type { Job } from "@/types/job";
+import { Link } from "react-router-dom";
+import { Media, MediaFallback } from "./ui/media";
+import { CalendarDays, Clock, Heart, MapPin, Ship } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface JobsSidebarProps {
+  jobs: Job[];
+}
+
+export default function JobsSidebar({ jobs }: JobsSidebarProps) {
+  return (
+    <>
+      <h2 className="font-medium">{jobs.length} jobs within map area</h2>
+      <ul role="list" className="space-y-4">
+        {jobs.map((job) => (
+          <li key={job.id} role="listitem">
+            <Link
+              tabIndex={0}
+              to={`/jobs/${job.id}`}
+              state={{ job }}
+              aria-label={`View job offer for ${job.title}`}
+              className="flex min-w-0 flex-row gap-2 overflow-hidden hover:cursor-pointer"
+            >
+              <Media className="size-24 rounded-3xl">
+                <Heart
+                  className={cn(
+                    "absolute top-2.5 right-2.5 cursor-pointer transition",
+                    job.favorite ? "fill-red-500 text-red-500" : "fill-neutral-400 text-neutral-400"
+                  )}
+                />
+                <MediaFallback className="bg-neutral-300" />
+              </Media>
+
+              <article className="min-w-0">
+                <header>
+                  <h2 className="truncate text-lg font-semibold">{job.title}</h2>
+                </header>
+
+                <dl className="mt-1 space-y-2 text-sm">
+                  {/* First Row */}
+                  <div className="flex gap-x-6">
+                    <div className="flex min-w-0 items-center gap-1">
+                      <dt className="sr-only">Job Type</dt>
+                      <Clock className="text-muted-foreground size-5 shrink-0" />
+                      <dd className="truncate">{job.type}</dd>
+                    </div>
+
+                    <div className="flex min-w-0 items-center gap-1">
+                      <dt className="sr-only">Date</dt>
+                      <CalendarDays className="text-muted-foreground size-5 shrink-0" />
+                      <dd>
+                        <time dateTime={job.date}>{job.date}</time>
+                      </dd>
+                    </div>
+                  </div>
+
+                  {/* Second Row */}
+                  <div className="flex gap-x-6">
+                    <div className="flex min-w-0 items-center gap-1">
+                      <dt className="sr-only">Vessel</dt>
+                      <Ship className="text-muted-foreground size-5 shrink-0" />
+                      <dd className="truncate">{job.vessel}</dd>
+                    </div>
+
+                    <div className="flex min-w-0 items-center gap-1">
+                      <dt className="sr-only">Location</dt>
+                      <MapPin className="text-muted-foreground size-5 shrink-0" />
+                      <dd className="truncate">{job.location}</dd>
+                    </div>
+                  </div>
+                </dl>
+              </article>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
