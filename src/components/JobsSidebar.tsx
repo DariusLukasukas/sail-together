@@ -20,13 +20,15 @@ export default function JobsSidebar({ jobs }: JobsSidebarProps) {
               to={`/jobs/${job.id}`}
               state={{ job }}
               aria-label={`View job offer for ${job.title}`}
-              className="flex min-w-0 flex-row gap-2 overflow-hidden hover:cursor-pointer"
+              className="flex min-w-0 flex-row gap-2 overflow-hidden rounded-md hover:cursor-pointer"
             >
               <Media className="size-24 rounded-3xl">
                 <Heart
                   className={cn(
                     "absolute top-2.5 right-2.5 cursor-pointer transition",
-                    job.favorite ? "fill-red-500 text-red-500" : "fill-neutral-400 text-neutral-400"
+                    job.isFavorite
+                      ? "fill-red-500 text-red-500"
+                      : "fill-neutral-400 text-neutral-400"
                   )}
                 />
                 <MediaFallback className="bg-neutral-300" />
@@ -66,7 +68,7 @@ export default function JobsSidebar({ jobs }: JobsSidebarProps) {
                     <div className="flex min-w-0 items-center gap-1">
                       <dt className="sr-only">Location</dt>
                       <MapPin className="text-muted-foreground size-5 shrink-0" />
-                      <dd className="truncate">{job.location}</dd>
+                      <dd className="truncate">{job.location.name}</dd>
                     </div>
                   </div>
                 </dl>

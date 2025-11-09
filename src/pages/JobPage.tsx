@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import type { Job } from "@/types/job";
 import { Container } from "@/components/ui/container";
 import { Media, MediaFallback } from "@/components/ui/media";
+import BaseMap from "@/components/map/BaseMap";
+import { jobsToGeoJSON } from "@/lib/jobsToGeoJSON";
 
 export default function JobPage() {
   const [applyOpen, setApplyOpen] = useState(false);
@@ -40,7 +42,7 @@ export default function JobPage() {
           <Media className="hidden size-24 rounded-3xl md:block">
             <Heart
               className={`absolute top-2.5 right-2.5 cursor-pointer transition ${
-                job.favorite ? "fill-red-500 text-red-500" : "fill-neutral-400 text-neutral-400"
+                job.isFavorite ? "fill-red-500 text-red-500" : "fill-neutral-400 text-neutral-400"
               }`}
             />
             <MediaFallback className="bg-neutral-300" />
@@ -71,7 +73,7 @@ export default function JobPage() {
               <dt className="sr-only">Location</dt>
               <dd className="flex items-center gap-1">
                 <MapPin className="size-5 text-neutral-400" />
-                {job.location}
+                {job.location.name}
               </dd>
             </dl>
           </div>
@@ -94,13 +96,13 @@ export default function JobPage() {
 
         <section>
           <h2 className="text-xl font-semibold">Job description</h2>
-          <p>{job.jobDescription}</p>
+          <p>{job.meta.description}</p>
         </section>
 
         <section>
           <h2 className="text-xl font-semibold">Requirements</h2>
           <ul className="list-inside list-disc">
-            {job.requirements.map((q, i) => (
+            {job.meta.requirements.map((q, i) => (
               <li key={i}>{q}</li>
             ))}
           </ul>
@@ -108,13 +110,13 @@ export default function JobPage() {
 
         <section>
           <h2 className="text-xl font-semibold">Experience</h2>
-          <p>{job.experience}</p>
+          <p>{job.meta.experience}</p>
         </section>
 
         <section>
           <h2 className="text-xl font-semibold">Essential Qualifications</h2>
           <ul className="grid list-inside list-disc grid-cols-1 md:grid-cols-2">
-            {job.qualifications.map((q, i) => (
+            {job.meta.qualifications.map((q, i) => (
               <li key={i}>{q}</li>
             ))}
           </ul>
@@ -122,14 +124,20 @@ export default function JobPage() {
 
         <section>
           <h2 className="text-xl font-semibold">Where you’ll be working</h2>
-          <div
+          {/*<div
             aria-label="Map placeholder"
             className="my-4 h-60 w-full overflow-hidden rounded-3xl"
           >
             <div className="size-full bg-neutral-200" />
-          </div>
+          </div>*/}
 
-          <p>{job.location}</p>
+          <div
+            aria-label="Map of job location"
+            className="my-4 h-60 w-full overflow-hidden rounded-3xl"
+          >
+            <BaseMap data={jobsToGeoJSON([job])} />
+          </div>
+          <p>{job.location.name}</p>
         </section>
       </article>
 

@@ -1,15 +1,28 @@
+export interface Coordinates {
+  longitude: number;
+  latitude: number;
+}
+
+export interface Location {
+  name: string;
+  address: string;
+  coordinates: Coordinates;
+}
+
+export interface JobMeta {
+  description: string;
+  requirements: string[];
+  experience: string[];
+  qualifications: string[];
+}
 
 export interface Job {
-  id: number;
-  favorite?: boolean;
+  id: string;
   title: string;
   type: string;
   date: string;
   vessel: string;
-  location: string;
-  inMapArea?: boolean;
-  jobDescription: string;
-  requirements: string[];
-  experience: string;
-  qualifications: string[];
-};
+  isFavorite?: boolean;
+  location: Location;
+  meta: JobMeta;
+}
