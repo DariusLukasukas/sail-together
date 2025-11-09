@@ -12,6 +12,7 @@ export default function JobsSidebar({ jobs }: JobsSidebarProps) {
   return (
     <>
       <h2 className="font-medium">{jobs.length} jobs within map area</h2>
+
       <ul role="list" className="space-y-4">
         {jobs.map((job) => (
           <li key={job.id} role="listitem">
@@ -20,7 +21,7 @@ export default function JobsSidebar({ jobs }: JobsSidebarProps) {
               to={`/jobs/${job.id}`}
               state={{ job }}
               aria-label={`View job offer for ${job.title}`}
-              className="flex min-w-0 flex-row gap-2 overflow-hidden rounded-md hover:cursor-pointer"
+              className="flex min-w-0 flex-row gap-2 overflow-hidden hover:cursor-pointer"
             >
               <Media className="size-24 rounded-3xl">
                 <Heart
@@ -34,18 +35,17 @@ export default function JobsSidebar({ jobs }: JobsSidebarProps) {
                 <MediaFallback className="bg-neutral-300" />
               </Media>
 
-              <article className="min-w-0">
+              <article className="min-w-0 space-y-1">
                 <header>
                   <h2 className="truncate text-lg font-semibold">{job.title}</h2>
                 </header>
 
-                <dl className="mt-1 space-y-2 text-sm">
-                  {/* First Row */}
-                  <div className="flex gap-x-6">
+                <dl className="space-y-2 text-sm [&_dd]:truncate [&>div]:flex [&>div]:gap-x-6">
+                  <div>
                     <div className="flex min-w-0 items-center gap-1">
                       <dt className="sr-only">Job Type</dt>
                       <Clock className="text-muted-foreground size-5 shrink-0" />
-                      <dd className="truncate">{job.type}</dd>
+                      <dd>{job.type}</dd>
                     </div>
 
                     <div className="flex min-w-0 items-center gap-1">
@@ -57,18 +57,17 @@ export default function JobsSidebar({ jobs }: JobsSidebarProps) {
                     </div>
                   </div>
 
-                  {/* Second Row */}
-                  <div className="flex gap-x-6">
+                  <div>
                     <div className="flex min-w-0 items-center gap-1">
                       <dt className="sr-only">Vessel</dt>
                       <Ship className="text-muted-foreground size-5 shrink-0" />
-                      <dd className="truncate">{job.vessel}</dd>
+                      <dd>{job.vessel}</dd>
                     </div>
 
                     <div className="flex min-w-0 items-center gap-1">
                       <dt className="sr-only">Location</dt>
                       <MapPin className="text-muted-foreground size-5 shrink-0" />
-                      <dd className="truncate">{job.location.name}</dd>
+                      <dd>{job.location.name}</dd>
                     </div>
                   </div>
                 </dl>
