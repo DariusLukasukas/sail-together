@@ -1,15 +1,17 @@
 import mapboxgl from "mapbox-gl";
 import type { EventFeature } from "@/lib/eventsToGeoJSON";
+import type { GenericFeature } from "@/types/map";
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { useEventStore } from "@/store/useEventStore";
+import { useJobStore } from "@/store/useJobStore";
 
 interface MarkerProps {
   map: mapboxgl.Map;
-  feature: EventFeature;
-  selectedMarker: EventFeature | null;
-  setSelectedMarker: (marker: EventFeature | null) => void;
+  feature: EventFeature | GenericFeature;
+  selectedMarker: EventFeature | GenericFeature | null;
+  setSelectedMarker: (marker: EventFeature | GenericFeature | null) => void;
 }
 
 export default function Marker({ map, feature, selectedMarker, setSelectedMarker }: MarkerProps) {
@@ -19,7 +21,8 @@ export default function Marker({ map, feature, selectedMarker, setSelectedMarker
   const contentRef = useRef<HTMLDivElement>(document.createElement("div"));
 
   const { hoveredEventId } = useEventStore();
-  const isHovered = properties.id === hoveredEventId;
+  const { hoveredJobId } = useJobStore();
+  const isHovered = properties.id === hoveredEventId || properties.id === hoveredJobId;
 
   const isSelected = properties.id === selectedMarker?.properties.id;
 
