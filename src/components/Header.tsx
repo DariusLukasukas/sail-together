@@ -1,27 +1,22 @@
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import avatar from "@/assets/avatar.png";
 import { cn } from "@/lib/utils";
+import { NavLink } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import avatar from "@/assets/avatar.png";
-import { Button } from "./ui/button";
 
-const NAVIGATION = [
+interface Navbar {
+  to: string;
+  label: string;
+  end?: boolean;
+}
+
+const NAVIGATION: Navbar[] = [
   { to: "/", label: "Home", end: true },
   { to: "/events", label: "Events" },
   { to: "/explore", label: "Explore" },
 ];
 
 export default function Header() {
-  // Used to add the "Add Post" button to the Explore page
-  const { pathname } = useLocation();
-  const navigate = useNavigate();
-
-  const onExplore = pathname.startsWith("/explore");
-
-  const openAddPost = () => {
-    navigate({ pathname: "/explore", search: "?addPost=1" });
-  };
-
   return (
     <header className="bg-background sticky top-0 z-50 w-full py-2">
       <div className="flex flex-row items-center">
@@ -36,8 +31,7 @@ export default function Header() {
                     cn(
                       "inline-flex h-9 items-center rounded-md px-4 py-2 font-medium transition-colors",
                       "hover:bg-accent hover:text-accent-foreground",
-                      isActive &&
-                        "hover:bg-background text-blue-500 hover:text-blue-500"
+                      isActive && "hover:bg-background text-blue-500 hover:text-blue-500"
                     )
                   }
                 >
