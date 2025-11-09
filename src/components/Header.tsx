@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import avatar from "@/assets/avatar.png";
-import { Button } from "./ui/button";
 
 const NAVIGATION = [
   { to: "/", label: "Home", end: true },
