@@ -3,12 +3,12 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import avatar from "@/assets/avatar.png";
+import { Button } from "./ui/button";
 
 const NAVIGATION = [
   { to: "/", label: "Home", end: true },
   { to: "/events", label: "Events" },
   { to: "/explore", label: "Explore" },
-  { to: "/profile", label: "Profile" },
 ];
 
 export default function Header() {
@@ -24,20 +24,8 @@ export default function Header() {
 
   return (
     <header className="bg-background sticky top-0 z-50 w-full py-2">
-      <div className="relative flex items-center justify-between px-4">
-        {/* This is a placeholder to keep it balanced after adding the "Add-Post button, might need cleaning up" */}
-        <div className="flex items-center gap-2 invisible">
-          <Button variant="outline" size="sm">
-            Add Post
-          </Button>
-          <Avatar className="size-10" />
-        </div>
-
-        {/* Center  */}
-        <nav
-          aria-label="Primary"
-          className="absolute left-1/2 -translate-x-1/2"
-        >
+      <div className="flex flex-row items-center">
+        <nav aria-label="Primary" className="absolute left-1/2 -translate-x-1/2">
           <ul className="flex list-none gap-0.5">
             {NAVIGATION.map(({ to, label, end }) => (
               <li key={to}>
@@ -60,14 +48,10 @@ export default function Header() {
           </ul>
         </nav>
 
-        {/* Right side (Add Post and Avatar) */}
-        <div className="flex items-center gap-2">
-          {onExplore && (
-            <Button onClick={openAddPost} variant="outline" size="sm">
-              Add Post
-            </Button>
-          )}
-
+        <div className="ml-auto flex items-center gap-4">
+          <NavLink to={"/add-listing"}>
+            <Button variant={"secondary"}>Add Listing</Button>
+          </NavLink>
           <NavLink to={"/profile"}>
             <Avatar className="size-10 select-none">
               <AvatarImage src={avatar} alt="profile avatar" />

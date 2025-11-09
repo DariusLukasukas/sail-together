@@ -2,6 +2,7 @@ import type { Event } from "@/types/event";
 import { Heart } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useEventStore } from "@/store/useEventStore";
+import { Media, MediaFallback } from "./ui/media";
 
 interface EventSidebarProps {
   events: Event[];
@@ -11,7 +12,7 @@ export default function EventSidebar({ events }: EventSidebarProps) {
   const { setHoveredEventId } = useEventStore();
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
       <h2 className="font-medium">{events.length} events within map area</h2>
       <div className="grid grid-cols-3 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {events.map((event) => (
@@ -22,7 +23,7 @@ export default function EventSidebar({ events }: EventSidebarProps) {
             onMouseLeave={() => setHoveredEventId(null)}
             className="flex w-full flex-col gap-2"
           >
-            <div className="relative aspect-square w-full rounded-3xl bg-neutral-300">
+            <Media className="aspect-square w-full rounded-3xl">
               {event.isFavorite ? (
                 <Heart
                   name="heart"
@@ -34,7 +35,8 @@ export default function EventSidebar({ events }: EventSidebarProps) {
                   className="absolute top-3 right-3 size-7 fill-neutral-500 text-neutral-500"
                 />
               )}
-            </div>
+              <MediaFallback className="bg-neutral-300" />
+            </Media>
 
             <div className="flex w-full flex-col">
               <h3 className="font-semibold">{event.title}</h3>
@@ -50,6 +52,6 @@ export default function EventSidebar({ events }: EventSidebarProps) {
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 }

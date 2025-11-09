@@ -2,10 +2,11 @@ import mapboxgl from "mapbox-gl";
 import type { EventFeature } from "@/lib/eventsToGeoJSON";
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import type { GenericFeature } from "@/types/map";
 
 interface PopupProps {
   map: mapboxgl.Map;
-  feature: EventFeature;
+  feature: EventFeature | GenericFeature;
 }
 
 export default function Popup({ map, feature }: PopupProps) {

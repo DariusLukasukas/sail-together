@@ -6,52 +6,39 @@ import { MapPin, Briefcase, CalendarClock } from "lucide-react";
 import { useEffect, useReducer } from "react";
 import { useClickAway } from "@uidotdev/usehooks";
 
-interface Location {
-  location: string;
+interface SuggestedLocation {
+  name: string;
+  description?: string;
+  className?: string;
 }
 
 interface JobType {
-  profession: string;
+  id: string;
+  label: string;
+  className?: string;
 }
 
-const LOCATIONS: Location[] = [
-  { location: "All locations" },
-  { location: "Atlantic Crossing" },
-  { location: "Mediterranean" },
-  { location: "North America" },
-  { location: "South America" },
-  { location: "Northern Europe" },
-  { location: "UK" },
-  { location: "Pacific" },
-  { location: "Caribbean" },
-  { location: "Australia" },
-  { location: "Asia" },
-  { location: "Africa" },
+const LOCATIONS: SuggestedLocation[] = [
+  { name: "Atlantic Crossing", className: "bg-blue-100" },
+  { name: "Mediterranean", className: "bg-green-100" },
+  { name: "North America", className: "bg-yellow-100" },
+  { name: "South America", className: "bg-red-100" },
+  { name: "Northern Europe", className: "bg-purple-100" },
+  { name: "UK", className: "bg-pink-100" },
+  { name: "Pacific", className: "bg-orange-100" },
+  { name: "Caribbean", className: "bg-cyan-100" },
+  { name: "Australia", className: "bg-teal-100" },
+  { name: "Asia", className: "bg-indigo-100" },
+  { name: "Africa", className: "bg-gray-100" },
 ];
 
 const JOB_TYPE_OPTIONS: JobType[] = [
-  { profession: "All positions" },
-  { profession: "Bosun" },
-  { profession: "Captain" },
-  { profession: "Chef" },
-  { profession: "Deck" },
-  { profession: "Deckhand" },
-  { profession: "Engineer" },
-  { profession: "Electro-Technical Officer" },
-  { profession: "First Officer" },
-  { profession: "Interior" },
-  { profession: "Pastry Chef" },
-  { profession: "Purser" },
-  { profession: "Sous Chef" },
-  { profession: "Steward(ess)" },
-  { profession: "Chief Stewardess" },
-  { profession: "Second Stewardess" },
-  { profession: "Third Stewardess" },
-  { profession: "Chief Engineer" },
-  { profession: "Second Engineer" },
-  { profession: "Third Engineer" },
-  { profession: "Medical Staff" },
-  { profession: "Other" },
+  { id: "steeward", label: "Steeward/Stewardess", className: "bg-purple-100" },
+  { id: "deckhand", label: "Deckhand", className: "bg-green-100" },
+  { id: "first-mate", label: "First Mate", className: "bg-yellow-100" },
+  { id: "captain", label: "Captain", className: "bg-orange-100" },
+  { id: "engineer", label: "Engineer", className: "bg-blue-100" },
+  { id: "chef", label: "Chef", className: "bg-red-100" },
 ];
 
 const STEPS = [
@@ -64,13 +51,13 @@ type Step = (typeof STEPS)[number];
 type State = {
   isOpen: boolean;
   stepIndex: number;
-  location: string | null;
+  name: string | null;
   position: string | null;
   availability?: DateRange | undefined;
 };
 
 export type Filters = {
-  location?: string | null;
+  name?: string | null;
   position?: string | null;
   availability?: DateRange | undefined;
   activeTab?: string;
@@ -99,7 +86,7 @@ function reducer(state: State, action: Action) {
     case "NEXT_STEP":
       return { ...state, stepIndex: Math.min(state.stepIndex + 1, STEPS.length - 1) };
     case "SET_LOCATION":
-      return { ...state, location: action.value };
+      return { ...state, name: action.value };
     case "SET_POSITION":
       return { ...state, position: action.value };
     case "SET_AVAILABILITY":
@@ -122,7 +109,7 @@ export default function SearchJobs() {
   const [state, dispatch] = useReducer(reducer, {
     isOpen: false,
     stepIndex: 0,
-    location: null,
+    name: null,
     position: null,
     availability: undefined,
   });
@@ -136,11 +123,9 @@ export default function SearchJobs() {
   const tabLabel = (step: Step) => {
     switch (step.label) {
       case "Where":
-        return state.location ?? "Where";
+        return state.name ?? "Where";
       case "What":
-        return (
-          JOB_TYPE_OPTIONS.find((type) => type.profession === state.position)?.profession ?? "What"
-        );
+        return JOB_TYPE_OPTIONS.find((type) => type.label === state.position)?.label ?? "What";
       case "When":
         return labelForRange(state.availability) ?? "When";
       default:
@@ -157,7 +142,7 @@ export default function SearchJobs() {
     return () => window.removeEventListener("keydown", onKey);
   }, [state.isOpen]);
 
-  const canSearch = !!state.location && !!state.position && !!state.availability?.from;
+  const canSearch = !!state.name && !!state.position && !!state.availability?.from;
 
   return (
     <div
@@ -216,22 +201,25 @@ export default function SearchJobs() {
             {activeTab.label === "Where" && (
               <div className="flex flex-col gap-4 px-6">
                 <div>
+                  <p className="mb-2 text-xs font-medium">Suggested locations</p>
                   <div className="flex flex-col gap-0.5 py-1">
                     {LOCATIONS.map((loc) => {
                       return (
                         <button
-                          key={loc.location}
+                          key={loc.name}
                           type="button"
                           tabIndex={0}
-                          className="hover:bg-secondary focus-visible:border-ring flex w-full flex-row gap-4 rounded-md p-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                          className="hover:bg-secondary focus-visible:border-ring flex w-full flex-row gap-4 rounded-2xl p-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                           onClick={() => {
-                            const next = state.location === loc.location ? null : loc.location;
+                            const next = state.name === loc.name ? null : loc.name;
                             dispatch({ type: "SET_LOCATION", value: next });
                             if (next) dispatch({ type: "NEXT_STEP" });
                           }}
                         >
+                          <div className={cn("size-14 rounded-lg bg-orange-100", loc.className)} />
                           <div className="flex flex-col justify-center text-sm font-medium">
-                            <p>{loc.location}</p>
+                            <p>{loc.name}</p>
+                            <p className="text-muted-foreground">{loc.description}</p>
                           </div>
                         </button>
                       );
@@ -246,18 +234,19 @@ export default function SearchJobs() {
                 <div className="flex flex-col gap-0.5 py-1">
                   {JOB_TYPE_OPTIONS.map((type) => (
                     <button
-                      key={type.profession}
+                      key={type.label}
                       type="button"
                       tabIndex={0}
-                      className="hover:bg-secondary focus-visible:border-ring flex flex-row gap-4 rounded-md p-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      className="hover:bg-secondary focus-visible:border-ring flex flex-row gap-4 rounded-2xl p-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                       onClick={() => {
-                        const next = state.position === type.profession ? null : type.profession;
+                        const next = state.position === type.label ? null : type.label;
                         dispatch({ type: "SET_POSITION", value: next });
                         if (next) dispatch({ type: "NEXT_STEP" });
                       }}
                     >
+                      <div className={cn("size-14 rounded-lg bg-orange-100", type.className)} />
                       <div className="flex flex-col justify-center text-sm font-medium">
-                        <p>{type.profession}</p>
+                        <p>{type.label}</p>
                       </div>
                     </button>
                   ))}
