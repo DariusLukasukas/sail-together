@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Feed } from "../components/feed/Feed";
+import AddPostPopUp from "../components/feed/AddPostPopUp";
 import type { Post } from "../types/post";
 import avatarImage from "../assets/avatar.png";
 
@@ -54,19 +56,32 @@ const mockPosts: Post[] = [
 
 export default function Explore() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
+
+  // open when ?addPost=1
+  const isAddPostOpen = useMemo(() => params.get("addPost") === "1", [params]);
+
+  const closeModal = () => {
+    // remove the query param but stay on /explore
+    navigate({ pathname: "/explore" }, { replace: true });
+  };
 
   useEffect(() => {
-    setTimeout(() => setPosts(mockPosts), 300);
+    const id = setTimeout(() => setPosts(mockPosts), 300);
+    return () => clearTimeout(id);
   }, []);
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col items-center px-4 pt-6 pb-24">
-      <div className="mb-6 w-full text-center">
+    <main className="mx-auto flex max-w-2xl flex-col items-center px-4 pt-6 pb-24">
+      <header className="mb-6 w-full text-center">
         <h1 className="text-2xl font-semibold tracking-tight">Your feed</h1>
         <p className="text-muted-foreground text-sm">See news from friends</p>
-      </div>
+      </header>
 
       <Feed initialPosts={posts} />
-    </div>
+
+      <AddPostPopUp open={isAddPostOpen} onClose={closeModal} />
+    </main>
   );
 }
