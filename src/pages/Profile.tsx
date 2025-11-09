@@ -1,221 +1,153 @@
-import React from "react";
-import { format } from "date-fns";
-import type { UserProfile, UserExperience } from "@/types/user";
-import avatarImage from "@/assets/avatar.png";
-import { Star, MapPin, Briefcase, Ship, CalendarDays, User, Radio } from "lucide-react";
-import AvatarStack from "@/components/ui/avatar-stack";
-import memoji1 from "@/assets/feedback/memoji-1.png";
-import memoji2 from "@/assets/feedback/memoji-2.png";
-import { Button } from "@/components/ui/button";
-import memoji3 from "@/assets/feedback/memoji-3.png";
+import SuitcaseIcon from "@/components/icons/SuitcaseIcon";
+import CalendarDaysIcon from "@/components/icons/CalendarDaysIcon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Container } from "@/components/ui/container";
+import { Rating } from "@/components/ui/rating";
+import { USER } from "@/data/user";
+import { Navigate } from "react-router-dom";
+import { format } from "date-fns";
+import LocationPin from "@/components/icons/LocationPin";
+import { ContactActions } from "@/components/ui/contact-actions";
+import IconMedal from "@/components/icons/IconMedal";
+import VesselIcon from "@/components/icons/VesselIcon";
+import GlobeIcon from "@/components/icons/GlobeIcon";
+import { Media, MediaFallback } from "@/components/ui/media";
 
-const MOCK_USER_DATA: UserProfile = {
-  id: "1",
-  name: "Clara A.",
-  email: "clara.a@example.com",
-  phone: "+1234567890",
-  avatarUrl: avatarImage,
-  rating: 4.5,
-  role: "Stewardess",
-  joinedDate: "2025-01-15T10:00:00Z",
-  location: "Copenhagen, Denmark",
-  about: "Description....",
-  experiences: [
-    {
-      id: "e1",
-      title: "Island Hopping",
-      location: "Fiscardo to Ithaca, Greece",
-      vessel: "52m (171ft) Motor Yacht",
-      date: "2025-09-12T00:00:00Z",
-    },
-  ],
-  qualifications: ["ICC", "Marine VHF Radio"],
-  skills: "Description....",
-  feedback: ["Comments...."],
-};
+export default function Profile() {
+  const {
+    avatarUrl,
+    name,
+    rating,
+    role,
+    joinedDate,
+    location,
+    email,
+    phone,
+    about,
+    qualifications,
+    skills,
+    feedback,
+    experiences,
+  } = USER;
 
-// --- NEW MOCK DATA FOR FEEDBACK AVATARS ---
-const mockFeedbackAvatars = [
-  { id: 1, avatarSrc: memoji1, className: "bg-red-500" },
-  { id: 2, avatarSrc: memoji2, className: "bg-green-500" },
-  { id: 3, avatarSrc: memoji3, className: "bg-yellow-500" },
-];
-
-// --- Child Component ---
-type ExperienceEntryProps = {
-  experience: UserExperience;
-};
-
-const ExperienceEntry = ({ experience }: ExperienceEntryProps) => {
-  return (
-    <div className="flex items-center gap-4 border-b border-gray-100 py-4">
-      <div className="size-24 rounded-3xl bg-neutral-300" />
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-center space-x-2">
-          <h4 className="font-semibold text-gray-900">{experience.title}</h4>
-          <AvatarStack data={mockFeedbackAvatars} size={"size-7"} />
-        </div>
-        <p className="flex items-center gap-2 text-sm text-gray-600">
-          <MapPin className="h-4 w-4 text-gray-400" />
-          {experience.location}
-        </p>
-        <p className="flex items-center gap-2 text-sm text-gray-600">
-          <Ship className="h-4 w-4 text-gray-400" />
-          {experience.vessel}
-        </p>
-        <p className="flex items-center gap-2 text-sm text-gray-600">
-          <CalendarDays className="h-4 w-4 text-gray-400" />
-          {format(new Date(experience.date), "do MMM yyyy")}
-        </p>
-      </div>
-    </div>
-  );
-};
-// --- Helper: Star Rating ---
-const StarRating = ({ rating }: { rating: number }) => {
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 !== 0;
-  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+  if (!USER) return <Navigate to="/404" replace />;
 
   return (
-    <div className="flex items-center" aria-label={`Rating: ${rating} out of 5 stars`}>
-      {[...Array(fullStars)].map((_, i) => (
-        <Star key={`full-${i}`} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-      ))}
-      {hasHalfStar && (
-        <div className="relative">
-          <Star className="h-5 w-5 text-yellow-400" />
-          <div className="absolute top-0 left-0 h-full w-1/2 overflow-hidden">
-            <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+    <Container className="container mx-auto max-w-3xl p-2">
+      <article className="flex flex-col gap-6 [&>section]:space-y-2">
+        <header className="flex flex-col items-center gap-2 [&>p]:flex [&>p]:items-center [&>p]:gap-2 [&>p]:font-semibold">
+          <Avatar className="size-24 rounded-3xl bg-[#FFC7D6]">
+            <AvatarImage src={avatarUrl} alt="User Avatar" />
+            <AvatarFallback>CA</AvatarFallback>
+          </Avatar>
+
+          <h1 id="profile-name" className="text-2xl font-bold">
+            {name}
+          </h1>
+
+          <div className="flex items-center gap-2">
+            <Rating value={rating ?? 0} max={5} size={24} />
+            <span className="sr-only">{rating} out of 5 stars</span>
           </div>
-        </div>
-      )}
-      {[...Array(emptyStars)].map((_, i) => (
-        <Star key={`empty-${i}`} className="h-5 w-5 text-gray-300" />
-      ))}
-    </div>
-  );
-};
-// --- Main Profile Component ---
-const Profile: React.FC = () => {
-  const user = MOCK_USER_DATA;
-  return (
-    <div className="mx-auto flex w-full max-w-xl flex-col items-start gap-6 px-4 py-6">
-      {/* Profile Card Section */}
-      <section className="flex w-full flex-col items-center gap-2 p-6">
-        <Avatar className="size-24 rounded-3xl bg-[#FFC7D6]">
-          <AvatarImage src={user.avatarUrl} alt={user.name} />
-          <AvatarFallback>{user.name[0]}</AvatarFallback>
-        </Avatar>
 
-        {/* Name & Rating */}
-        <h2 className="text-2xl font-bold">{user.name}</h2>
-        <StarRating rating={user.rating} />
+          <div className="flex gap-4 [&>p]:flex [&>p]:items-center [&>p]:gap-2 [&>p]:font-semibold">
+            <p>
+              <SuitcaseIcon className="size-6" /> {role}
+            </p>
+            <p>
+              <CalendarDaysIcon className="size-6" /> Joined {format(joinedDate, "MMM yyyy")}
+            </p>
+          </div>
+          <p>
+            <LocationPin className="size-6" /> {location}
+          </p>
 
-        {/* Role & Joined Date */}
-        <div className="flex items-center gap-4 text-sm text-gray-600">
-          <span className="flex items-center gap-1.5">
-            <Briefcase className="h-4 w-4 text-gray-400" /> {user.role}
-          </span>
-          <span>• Joined {format(new Date(user.joinedDate), "MMM yyyy")}</span>
-        </div>
+          <ContactActions email={email} phone={phone} />
+        </header>
 
-        {/* Location */}
-        <div className="flex items-center gap-1.5 text-sm text-gray-600">
-          <MapPin className="h-4 w-4 text-gray-400" /> {user.location}
-        </div>
+        <section>
+          <h2 className="text-xl font-semibold">About Me</h2>
+          <p>{about}</p>
+        </section>
 
-        {/* Actions (updated button style) */}
-        <div className="flex gap-2">
-          <Button
-            aria-label="Send email"
-            variant={"secondary"}
-            onClick={() => (window.location.href = `mailto:${user.email}`)}
-            className="rounded-full"
-          >
-            Email
-          </Button>
-          <Button aria-label="Send message" variant={"secondary"} className="rounded-full">
-            Message
-          </Button>
-          {user.phone && (
-            <Button
-              aria-label="Call contact"
-              variant={"secondary"}
-              onClick={() => (window.location.href = `tel:${user.phone}`)}
-              className="rounded-full"
-            >
-              Call
-            </Button>
-          )}
-        </div>
-      </section>
-
-      {/* Profile Sections  */}
-      <section className="flex w-full flex-col gap-6 p-4">
-        {/* About & Hobbies */}
-        <article>
-          <h3 className="text-lg font-semibold">About & Hobbies</h3>
-          <p className="text-sm text-gray-600">{user.about}</p>
-        </article>
-        <hr className="border-gray-100" />
-
-        {/* Experience Log */}
-        <article>
-          <h3 className="mb-2 text-lg font-semibold">Experience Log</h3>
-          <div className="flex flex-col">
-            {user.experiences.map((exp) => (
-              <ExperienceEntry key={exp.id} experience={exp} />
+        <section>
+          <h2 className="text-xl font-semibold">Experience Log</h2>
+          <ul className="flex list-none flex-col gap-4">
+            {experiences?.map((experience) => (
+              <li key={experience.id} className="flex flex-row gap-4 rounded-2xl">
+                <Media className="size-24 rounded-3xl">
+                  {/*Use img src from database*/}
+                  {/*<MediaImage src={experience.image} alt={experience.title} />*/}
+                  <MediaFallback className="bg-neutral-300" />
+                </Media>
+                <div className="flex flex-col justify-between [&>p]:flex [&>p]:items-center [&>p]:gap-2 [&>p]:text-sm [&>p]:font-medium">
+                  <h3 className="font-medium">{experience.title}</h3>
+                  <p>
+                    <GlobeIcon className="size-5" /> {experience.location}
+                  </p>
+                  <p>
+                    <VesselIcon className="size-5" /> {experience.vessel}
+                  </p>
+                  <p>
+                    <CalendarDaysIcon className="size-5" /> {format(experience.date, "MMM yyyy")}
+                  </p>
+                </div>
+              </li>
             ))}
-          </div>
-        </article>
-
-        {/* Qualifications */}
-        <section>
-          <h3 className="mb-2 text-lg font-semibold">Qualifications</h3>
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-3 text-sm text-gray-600">
-              <User className="h-4 w-4 text-gray-400" />
-              <span>ICC</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm text-gray-600">
-              <Radio className="h-4 w-4 text-gray-400" />
-              <span>Marine VHF Radio</span>
-            </div>
-            {/* Added the third one from your original code */}
-            <div className="flex items-center gap-3 text-sm text-gray-600">
-              <span className="w-4" /> {/* Spacer */}
-              <span>STCW Basic Safety Training</span>
-            </div>
-          </div>
+          </ul>
         </section>
-        <hr className="border-gray-100" />
 
-        {/* Skills */}
         <section>
-          <h3 className="mb-2 text-lg font-semibold">Skills</h3>
-          <p className="text-sm text-gray-600">{user.skills}</p>
+          <h2 className="text-xl font-semibold">Qualifications</h2>
+          <ul className="grid list-none grid-cols-1 gap-2 p-0 md:grid-cols-2">
+            {qualifications?.map((qualification) => (
+              <li key={qualification.id} className="flex items-start gap-2 font-medium">
+                <IconMedal aria-hidden="true" className="size-6 shrink-0 text-blue-500" />
+                {qualification.name}
+              </li>
+            ))}
+          </ul>
         </section>
-        <hr className="border-gray-100" />
 
-        {/* Feedback */}
         <section>
-          <h3 className="mb-3 text-lg font-semibold">Feedback</h3>
-          <div className="flex flex-col gap-4">
-            {/* Keep the original text comments */}
-            <div className="flex flex-col gap-2">
-              {user.feedback.map((f, i) => (
-                <p key={i} className="text-sm text-gray-600">
-                  {f}
+          <h2 className="text-xl font-semibold">Skills</h2>
+          <ul className="flex flex-wrap gap-2">
+            {skills?.map((skill, index) => (
+              <li
+                key={`skill-${index}`}
+                className="bg-muted text-muted-foregroundpx-2 inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium"
+              >
+                {skill}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold">Feedback</h2>
+          <ul className="flex flex-wrap gap-2">
+            {feedback?.map((f) => (
+              <li key={f.id} className="bg-muted w-full rounded-2xl p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="leading-none font-semibold">{f.author ?? "Anonymous"}</p>
+                  {f.createdAt && (
+                    <time
+                      className="text-muted-foreground text-xs font-medium"
+                      dateTime={f.createdAt}
+                    >
+                      {format(new Date(f.createdAt), "MMM d, yyyy")}
+                    </time>
+                  )}
+                </div>
+
+                <p className="text-muted-foreground mt-2 line-clamp-4 text-sm leading-relaxed">
+                  {f.comment}
                 </p>
-              ))}
-            </div>
-          </div>
+              </li>
+            ))}
+          </ul>
         </section>
-      </section>
-    </div>
+      </article>
+    </Container>
   );
-};
-
-export default Profile;
+}
