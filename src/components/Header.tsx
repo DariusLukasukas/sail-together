@@ -8,7 +8,6 @@ const NAVIGATION = [
   { to: "/", label: "Home", end: true },
   { to: "/events", label: "Events" },
   { to: "/explore", label: "Explore" },
-  { to: "/profile", label: "Profile" },
 ];
 
 export default function Header() {
