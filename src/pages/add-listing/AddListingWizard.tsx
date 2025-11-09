@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 type QKind = "radio" | "date" | "map" | "input";
 
@@ -108,6 +108,7 @@ function isAnswered(step: Question, val: AnyAnswer | undefined): boolean {
 export default function AddListingWizard() {
   const { step } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const total = QUESTIONS.length;
   const index = Math.max(0, Math.min(total - 1, (Number(step) || 1) - 1));
@@ -134,15 +135,21 @@ export default function AddListingWizard() {
     }
   };
 
+  const handleSaveAndExit = () => {
+    // Later we'll add save logic here
+    if (location.pathname.includes("/add-listing")) {
+      navigate("/");
+    } else {
+      navigate(-1);
+    }
+  };
+
   return (
     <>
       <div className="flex w-full">
         <div className="ml-auto flex gap-2">
           <Button variant="secondary">Questions?</Button>
-          <Button
-            variant="secondary"
-            onClick={() => localStorage.setItem("addListingDraft", JSON.stringify(answers))}
-          >
+          <Button variant="secondary" onClick={handleSaveAndExit}>
             Save &amp; Exit
           </Button>
         </div>
