@@ -3,19 +3,21 @@ import { useEffect, useRef, useState } from "react";
 import Marker from "./Marker";
 import Popup from "./Popup";
 import { type EventFeature, type EventFeatureCollection } from "@/lib/eventsToGeoJSON";
+import { type GenericFeature, type GenericFeatureCollection } from "@/types/map";
 
 const MAPBOX_API_KEY = import.meta.env.VITE_MAPBOX_API_KEY;
 
 interface MapProps {
-  events: EventFeatureCollection;
+  events?: EventFeatureCollection;
+  jobs?: GenericFeatureCollection;
 }
 
-export default function Map({ events }: MapProps) {
+export default function Map({ events, jobs }: MapProps) {
   const mapRef = useRef<MapboxMap | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [selectedMarker, setSelectedMarker] = useState<EventFeature | null>(null);
+  const [selectedMarker, setSelectedMarker] = useState<EventFeature | GenericFeature | null>(null);
 
   useEffect(() => {
     const token = MAPBOX_API_KEY;
@@ -74,8 +76,17 @@ export default function Map({ events }: MapProps) {
   return (
     <div className="relative h-full w-full grow overflow-hidden rounded-2xl">
       <div ref={mapContainerRef} className="absolute inset-0 h-full w-full" />
-      {mapLoaded &&
-        events.features.map((location) => (
+      {(mapLoaded &&
+        events?.features.map((location) => (
+          <Marker
+            key={location.properties.id}
+            feature={location}
+            map={mapRef.current!}
+            selectedMarker={selectedMarker}
+            setSelectedMarker={setSelectedMarker}
+          />
+        ))) ||
+        jobs?.features.map((location) => (
           <Marker
             key={location.properties.id}
             feature={location}

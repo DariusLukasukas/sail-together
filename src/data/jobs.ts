@@ -9,13 +9,13 @@ export const JOBS: Job[] = [
     date: "1st Dec 2025",
     vessel: "38m Motor Yacht",
     location: {
-      name: "Caribbean",
-      address: "Port of Saint Martin",
-      coordinates: { longitude: -63.0822, latitude: 18.0708 },
+      name: "Denmark",
+      address: "Copenhagen Harbor",
+      coordinates: { longitude: 12.6500010, latitude: 55.6525526 },
     },
     meta: {
       description:
-        "We are looking for an engineer to join a 38m M/Y. Vessel will be crossing from Caribbean to Mediterranean for season early December. Joining a team of 2 rotational chief engineers and a permanent 2nd engineer. The role will require work on deck during guest trips and mooring operation. This works out to be approx. 80/20 Engine Room/Deck. Responsible for maintaining and repairing the yacht's mechanical and electrical systems.",
+        "We are looking for an engineer to join a 38m M/Y. Vessel will be crossing from Malmö, Sweden to Canary Islands, Spain for season early December. Joining a team of 2 rotational chief engineers and a permanent 2nd engineer. The role will require work on deck during guest trips and mooring operation. This works out to be approx. 80/20 Engine Room/Deck. Responsible for maintaining and repairing the yacht's mechanical and electrical systems.",
       requirements: [
         "Proven experience as a marine engineer.",
         "Knowledge of mechanical and electrical systems.",
@@ -39,9 +39,9 @@ export const JOBS: Job[] = [
     date: "15th Nov 2025",
     vessel: "52m Motor Yacht",
     location: {
-      name: "U.S. Virgin Islands",
-      address: "Charlotte Amalie Harbor, St. Thomas",
-      coordinates: { longitude: -64.9312, latitude: 18.3381 },
+      name: "Denmark",
+      address: "Copenhagen Harbor",
+      coordinates: { longitude: 12.6500000, latitude: 55.6426526 },
     },
     meta: {
       description:
@@ -68,9 +68,9 @@ export const JOBS: Job[] = [
     date: "1st Dec 2025",
     vessel: "60m Motor Yacht",
     location: {
-      name: "Bahamas",
-      address: "Nassau Marina",
-      coordinates: { longitude: -77.3554, latitude: 25.0582 },
+      name: "Denmark",
+      address: "Copenhagen Harbor",
+      coordinates: { longitude: 12.6019333, latitude: 55.6976526 },
     },
     meta: {
       description:
@@ -100,9 +100,9 @@ export const JOBS: Job[] = [
     date: "15th Nov 2025",
     vessel: "45m Motor Yacht",
     location: {
-      name: "Caribbean",
-      address: "Antigua Marina",
-      coordinates: { longitude: -61.8456, latitude: 17.1274 },
+      name: "Denmark",
+      address: "Copenhagen Harbor",
+      coordinates: { longitude: 12.6500100, latitude: 55.6448000 },
     },
     meta: {
       description:
@@ -130,9 +130,9 @@ export const JOBS: Job[] = [
     date: "20th Nov 2025",
     vessel: "30m Motor Yacht",
     location: {
-      name: "Mediterranean",
-      address: "Port of Barcelona",
-      coordinates: { longitude: 2.1734, latitude: 41.3851 },
+      name: "Denmark",
+      address: "Copenhagen Harbor",
+      coordinates: { longitude: 12.6010000, latitude: 55.6876526},
     },
     meta: {
       description:
