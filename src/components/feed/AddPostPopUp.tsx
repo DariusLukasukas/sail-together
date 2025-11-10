@@ -1,56 +1,46 @@
-// src/components/feed/AddPostModal.tsx
-type AddPostPopUpProps = {
-  open: boolean;
-  onClose: () => void;
-};
+import { Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription, 
+  DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
-export default function AddPostModal({ open, onClose }: AddPostPopUpProps) {
-  if (!open) return null;
+interface AddPostProps {
+  applyOpen: boolean;
+  setApplyOpen: (open: boolean) => void;
+}
 
+export default function AddPostPopUp({ applyOpen, setApplyOpen }: AddPostProps) {
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-xl rounded-2xl bg-white p-5 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Create a post</h2>
-          <button
-            onClick={onClose}
-            className="rounded-md p-1 text-gray-500 hover:bg-gray-100"
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="grid gap-3">
-          <input
-            className="w-full rounded-lg border border-gray-200 p-2"
-            placeholder="Title"
-          />
-          <textarea
-            className="w-full rounded-lg border border-gray-200 p-2"
-            placeholder="What’s on your mind?"
-            rows={5}
-          />
-          <div className="flex justify-end gap-2 pt-1">
-            <button
-              onClick={onClose}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-2"
-            >
-              Cancel
-            </button>
-            <button className="rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700">
-              Post
-            </button>
+    <Dialog open={applyOpen} onOpenChange={setApplyOpen}>
+            <DialogContent className="max-w-lg rounded-2xl">
+        <DialogHeader>
+          <DialogTitle>Create a Post</DialogTitle>
+          <DialogDescription>Write something and add image (PNG/JPEG)</DialogDescription>
+        </DialogHeader>
+        <form className="grid gap-4 [&>div]:grid [&>div]:gap-3">
+          <div>
+            <Label htmlFor="text">Text</Label>
+            <Input required type="text" placeholder="What's on your mind?" />
           </div>
-        </div>
-      </div>
-    </div>
+          <div>
+            <Label htmlFor="image">Image</Label>
+            <Input required type="file" accept=".png,.jpeg,.jpg" className="min-h-20" />
+          </div>
+        </form>
+        <DialogFooter className="flex w-full gap-2">
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full rounded-xl bg-blue-500 text-white hover:bg-blue-600"
+          >
+            Post
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
