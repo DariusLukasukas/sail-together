@@ -1,38 +1,54 @@
-export type Categories =
-  | "race"
-  | "cruise"
-  | "meetup"
-  | "training"
-  | "maintenance"
-  | "party"
-  | "meeting"
-  | "open-day"
-  | "charity"
-  | "other";
+import type { CategorySlug } from "./category";
 
-export type Currency = "DKK" | "EUR" | "USD" | string;
+export type Currency = "DKK" | "EUR" | "USD";
 
-export type Price = { kind: "free" } | { kind: "paid"; amount: number; currency: Currency };
-
-export interface Coordinates {
-  longitude: number;
-  latitude: number;
-}
-
-export interface Location {
-  name: string;
-  address: string;
-  coordinates: Coordinates;
-}
-
+/**
+ * Normalized Event table for PostgreSQL
+ * - Uses locationId foreign key instead of nested Location
+ * - Uses categoryId foreign key instead of category string
+ * - Flattens price structure for database storage
+ * - Uses createdById to track event creator
+ */
 export interface Event {
   id: string;
   title: string;
   description?: string;
   isFavorite?: boolean;
-  startDate: string;
-  endDate?: string;
-  category: Categories;
-  price: Price;
-  location: Location;
+  startDate: Date | string;
+  endDate?: Date | string;
+  categoryId: string; // Foreign key to Category table
+  locationId: string; // Foreign key to Location table
+  createdById?: string; // Foreign key to User table (optional)
+  
+  // Price fields (flattened from nested object)
+  priceKind: "free" | "paid";
+  priceAmount?: number; // Only set when priceKind === "paid"
+  priceCurrency?: Currency; // Only set when priceKind === "paid"
+  
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+/**
+ * Event with joined relations (for API responses)
+ * Use this when you need the full location/category objects
+ */
+export interface EventWithRelations extends Omit<Event, "categoryId" | "locationId"> {
+  category: {
+    id: string;
+    slug: CategorySlug;
+    name: string;
+  };
+  location: {
+    id: string;
+    name: string;
+    address: string;
+    longitude: number;
+    latitude: number;
+  };
+  createdBy?: {
+    id: string;
+    name: string;
+    avatarUrl?: string;
+  };
 }

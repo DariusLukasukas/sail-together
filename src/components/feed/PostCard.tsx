@@ -1,4 +1,4 @@
-import type { Post } from "@/types/post";
+import type { PostWithRelations } from "@/types/post";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +10,7 @@ import {
 import { useState } from "react";
 
 /** Props to PostCard. */
-type PostCardProps = { post: Post };
+type PostCardProps = { post: PostWithRelations };
 
 /** Returnerer up to two initials. */
 function getUserName(name: string) {
@@ -67,7 +67,7 @@ export function PostCard({ post }: PostCardProps) {
         name={user.name}
         avatarUrl={user.avatarUrl}
         locationName={location?.name}
-        createdAt={createdAt}
+        createdAt={String(createdAt)}
       />
 
       <figure className="mt-2 overflow-hidden rounded-2xl">
@@ -80,7 +80,7 @@ export function PostCard({ post }: PostCardProps) {
       </figure>
 
       <Actions
-        liked={liked}
+        liked={liked ?? false}
         likeCount={likeCount}
         commentCount={commentCount}
         onToggleLike={toggleLike}

@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { Heart, Clock, CalendarDays, Ship, MapPin } from "lucide-react";
-import type { Job } from "@/types/job";
+import type { Job, JobWithRelations } from "@/types/job";
 import { Container } from "@/components/ui/container";
 import { Media, MediaFallback } from "@/components/ui/media";
 import BaseMap from "@/components/map/BaseMap";
@@ -14,12 +14,27 @@ export default function JobPage() {
   const [shareOpen, setShareOpen] = useState(false);
 
   const location = useLocation();
-  const jobFromState = (location.state as { job?: Job } | null)?.job;
-  const job: Job | null = jobFromState ?? null;
+  const jobFromState = (location.state as { job?: JobWithRelations } | null)?.job;
+  const job: JobWithRelations | null = jobFromState ?? null;
 
   const mapData = useMemo(() => {
     if (!job) return null;
-    return jobsToGeoJSON([job]);
+    // Convert JobWithRelations back to Job for the GeoJSON function
+    const {
+      location,
+      requirements: _requirements,
+      experience: _experience,
+      qualifications: _qualifications,
+      createdBy: _createdBy,
+      ...rest
+    } = job;
+
+    const jobBase: Job = {
+      ...rest,
+      locationId: location.id,
+    };
+
+    return jobsToGeoJSON([jobBase]);
   }, [job]);
 
   if (!job) return <Navigate to="/404" replace />;
@@ -50,7 +65,7 @@ export default function JobPage() {
               <dt className="sr-only">Posted</dt>
               <dd>
                 <CalendarDays className="text-muted-foreground size-5" />
-                {job.date}
+                {String(job.date)}
               </dd>
 
               <dt className="sr-only">Vessel</dt>
@@ -75,34 +90,42 @@ export default function JobPage() {
 
         <section>
           <h2 className="text-xl font-semibold">Job description</h2>
-          <p>{job.meta.description}</p>
+          <p>{job.description}</p>
         </section>
 
         <section>
           <h2 className="text-xl font-semibold">Requirements</h2>
           <ul className="list-inside list-disc">
-            {job.meta.requirements.map((q, i) => (
-              <li key={i}>{q}</li>
+            {job.requirements.map((req) => (
+              <li key={req.id}>{req.requirement}</li>
             ))}
           </ul>
         </section>
 
         <section>
           <h2 className="text-xl font-semibold">Experience</h2>
-          <p>{job.meta.experience}</p>
+          {job.experience.length > 0 ? (
+            <ul className="list-inside list-disc">
+              {job.experience.map((exp) => (
+                <li key={exp.id}>{exp.experience}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>No specific experience requirements listed.</p>
+          )}
         </section>
 
         <section>
           <h2 className="text-xl font-semibold">Essential Qualifications</h2>
           <ul className="grid list-inside list-disc grid-cols-1 md:grid-cols-2">
-            {job.meta.qualifications.map((q, i) => (
-              <li key={i}>{q}</li>
+            {job.qualifications.map((qual) => (
+              <li key={qual.id}>{qual.qualification}</li>
             ))}
           </ul>
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold">Where you’ll be working</h2>
+          <h2 className="text-xl font-semibold">Where you'll be working</h2>
           <div
             aria-label="Map of job location"
             className="my-4 h-60 w-full overflow-hidden rounded-3xl"
