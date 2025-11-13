@@ -5,6 +5,7 @@ import { Input } from "../../ui/input";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { logIn } from "@/lib/parse/auth";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
   const [username, setUsername] = useState("");
@@ -72,6 +73,7 @@ export default function LoginForm({ className, ...props }: React.ComponentProps<
       </Field>
 
       <Button type="submit" disabled={isSubmited}>
+        {isSubmited && <Spinner />}
         Login
       </Button>
 

@@ -35,6 +35,9 @@ export default function Header() {
   return (
     <header className="bg-background sticky top-0 z-50 w-full py-2">
       <div className="flex flex-row items-center">
+        {/* LOGO */}
+        <h1 className="text-2xl font-extrabold text-nowrap text-blue-500 select-none">Open Sail</h1>
+
         <nav aria-label="Primary" className="absolute left-1/2 -translate-x-1/2">
           <ul className="flex list-none gap-0.5">
             {NAVIGATION.map(({ to, label, end }) => (
@@ -57,7 +60,7 @@ export default function Header() {
           </ul>
         </nav>
 
-        <div className="ml-auto flex items-center gap-4">
+        <div className="ml-auto flex items-center gap-2">
           {user ? (
             <>
               <NavLink to={"/add-listing"}>
@@ -80,7 +83,6 @@ export default function Header() {
               <NavLink to="/login">
                 <Button variant={"ghost"}>Log in</Button>
               </NavLink>
-
               <NavLink to="/signup">
                 <Button variant={"secondary"}>Sign up</Button>
               </NavLink>
