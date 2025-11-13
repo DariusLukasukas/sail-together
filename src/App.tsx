@@ -8,7 +8,7 @@ import JobPage from "@/pages/JobPage";
 import RootLayout from "@/layouts/RootLayout";
 import WizardLayout from "@/layouts/WizardLayout";
 import AddListingWizard from "@/pages/add-listing/AddListingWizard";
-import SignUpPage from "@/pages/auth/Signup";
+import SignUpPage from "@/pages/auth/SignUp";
 import LoginPage from "@/pages/auth/Login";
 import GuestRoute from "@/components/GuestRoute";
 import AuthLayout from "@/layouts/AuthLayout";
