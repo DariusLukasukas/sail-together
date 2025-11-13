@@ -1,8 +1,10 @@
 import avatar from "@/assets/avatar.png";
 import { cn } from "@/lib/utils";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { getCurrentUser, logOut } from "@/lib/parse/auth";
 
 interface Navbar {
   to: string;
@@ -17,6 +19,19 @@ const NAVIGATION: Navbar[] = [
 ];
 
 export default function Header() {
+  const [user, setUser] = useState<Parse.User | null | undefined>(undefined);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setUser(getCurrentUser());
+  }, []);
+
+  async function handleSignOut() {
+    await logOut();
+    setUser(null);
+    navigate("/login");
+  }
+
   return (
     <header className="bg-background sticky top-0 z-50 w-full py-2">
       <div className="flex flex-row items-center">
@@ -29,7 +44,7 @@ export default function Header() {
                   end={!!end}
                   className={({ isActive }) =>
                     cn(
-                      "inline-flex h-9 items-center rounded-md px-4 py-2 font-medium transition-colors",
+                      "inline-flex h-9 items-center rounded-lg px-4 py-2 font-medium transition-colors",
                       "hover:bg-accent hover:text-accent-foreground",
                       isActive && "hover:bg-background text-blue-500 hover:text-blue-500"
                     )
@@ -43,15 +58,34 @@ export default function Header() {
         </nav>
 
         <div className="ml-auto flex items-center gap-4">
-          <NavLink to={"/add-listing"}>
-            <Button variant={"secondary"}>Add Listing</Button>
-          </NavLink>
-          <NavLink to={"/profile"}>
-            <Avatar className="size-10 select-none">
-              <AvatarImage src={avatar} alt="profile avatar" />
-              <AvatarFallback>CL</AvatarFallback>
-            </Avatar>
-          </NavLink>
+          {user ? (
+            <>
+              <NavLink to={"/add-listing"}>
+                <Button variant={"secondary"}>Add Listing</Button>
+              </NavLink>
+
+              <NavLink to={"/profile"}>
+                <Avatar className="size-10 select-none">
+                  <AvatarImage src={avatar} alt="profile avatar" />
+                  <AvatarFallback>CL</AvatarFallback>
+                </Avatar>
+              </NavLink>
+
+              <Button variant={"ghost"} onClick={handleSignOut}>
+                Sign out
+              </Button>
+            </>
+          ) : (
+            <>
+              <NavLink to="/login">
+                <Button variant={"ghost"}>Log in</Button>
+              </NavLink>
+
+              <NavLink to="/signup">
+                <Button variant={"secondary"}>Sign up</Button>
+              </NavLink>
+            </>
+          )}
         </div>
       </div>
     </header>
