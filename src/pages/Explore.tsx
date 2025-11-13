@@ -4,6 +4,8 @@ import { Feed } from "../components/feed/Feed";
 import AddPostPopUp from "../components/feed/AddPostPopUp";
 import type { Post } from "../types/post";
 import avatarImage from "../assets/avatar.png";
+import AddPostInFeed from "../components/feed/AddPostInFeed";
+
 
 const now = Date.now();
 const mockPosts: Post[] = [
@@ -78,10 +80,12 @@ export default function Explore() {
         <h1 className="text-2xl font-semibold tracking-tight">Your feed</h1>
         <p className="text-muted-foreground text-sm">See news from friends</p>
       </header>
-
+  
+      <AddPostInFeed
+      className="mb-8"
+      onAddPostClick={() => navigate("?addPost=1")}/>      
       <Feed initialPosts={posts} />
-
-      <AddPostPopUp open={isAddPostOpen} onClose={closeModal} />
+  
     </main>
   );
 }
