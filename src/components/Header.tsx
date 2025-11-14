@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "./ui/dropdown-menu";
-import { CircleUserRound, Heart, Map, Menu } from "lucide-react";
+import { CircleUserRound, Heart, Map, Menu, Settings } from "lucide-react";
 
 interface Navbar {
   to: string;
@@ -102,8 +102,12 @@ export default function Header() {
                     <Map strokeWidth={2} />
                     Trips
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    <CircleUserRound strokeWidth={2} /> Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="mx-3" />
                   <DropdownMenuItem>
-                    <CircleUserRound strokeWidth={2} /> Account Settings
+                    <Settings strokeWidth={2} /> Account Settings
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="mx-3" />
                   <DropdownMenuItem onClick={handleSignOut}>Sign out</DropdownMenuItem>
