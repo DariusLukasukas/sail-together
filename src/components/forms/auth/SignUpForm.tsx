@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Field, FieldLabel, FieldDescription, FieldError } from "../../ui/field";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function SignUpForm({ className, ...props }: React.ComponentProps<"form">) {
   const [username, setUsername] = useState("");
@@ -153,6 +154,7 @@ export default function SignUpForm({ className, ...props }: React.ComponentProps
       </Field>
 
       <Button type="submit" disabled={isSubmited}>
+        {isSubmited && <Spinner />}
         Create Account
       </Button>
 
