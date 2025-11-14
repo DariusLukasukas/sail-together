@@ -85,8 +85,8 @@ export default function Header() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    variant="outline"
                     aria-label="Open menu"
+                    variant="outline"
                     size="icon"
                     className="select-none"
                   >
