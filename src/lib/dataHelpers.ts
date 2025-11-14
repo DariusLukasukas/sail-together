@@ -1,5 +1,6 @@
 import type { Event, EventWithRelations } from "@/types/event";
 import type { Job, JobWithRelations } from "@/types/job";
+import type { CategorySlug } from "@/types/category";
 import { LOCATIONS } from "@/data/locations";
 import { CATEGORIES } from "@/data/categories";
 import { JOB_REQUIREMENTS, JOB_EXPERIENCE, JOB_QUALIFICATIONS } from "@/data/jobs";
@@ -21,7 +22,7 @@ export function getEventWithRelations(event: Event & { _category?: any; _locatio
 
   // Fallback to static data lookup
   const location = LOCATIONS.find((loc) => loc.id === event.locationId);
-  const category = CATEGORIES.find((cat) => cat.id === event.categoryId);
+  const category = CATEGORIES.find((cat) => cat.slug === event.categorySlug);
 
   // Provide fallback values if data is missing
   const fallbackLocation = {
@@ -33,28 +34,26 @@ export function getEventWithRelations(event: Event & { _category?: any; _locatio
   };
 
   const fallbackCategory = {
-    id: event.categoryId || "unknown",
-    slug: "other" as const,
-    name: "Other",
+    slug: (event.categorySlug || "other") as CategorySlug,
+    name: category?.name || "Other",
   };
 
   return {
     ...event,
     location: location
       ? {
-          id: location.id,
-          name: location.name,
-          address: location.address,
-          longitude: location.longitude,
-          latitude: location.latitude,
-        }
+        id: location.id,
+        name: location.name,
+        address: location.address,
+        longitude: location.longitude,
+        latitude: location.latitude,
+      }
       : fallbackLocation,
     category: category
       ? {
-          id: category.id,
-          slug: category.slug,
-          name: category.name,
-        }
+        slug: category.slug,
+        name: category.name,
+      }
       : fallbackCategory,
   };
 }

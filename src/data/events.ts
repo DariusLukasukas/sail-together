@@ -6,7 +6,7 @@ export const EVENTS: Event[] = [
     title: "Offshore Race",
     isFavorite: true,
     startDate: "2025-10-21T09:30:00+02:00",
-    categoryId: "cat-1", // race
+    categorySlug: "race",
     locationId: "loc-1", // Kastrup Lystbådehavn
     priceKind: "paid",
     priceAmount: 100,
@@ -16,7 +16,7 @@ export const EVENTS: Event[] = [
     id: "2",
     title: "Marina Party",
     startDate: "2025-10-25T10:30:00+02:00",
-    categoryId: "cat-6", // party
+    categorySlug: "party",
     locationId: "loc-2", // Tuborg Harbor
     priceKind: "free",
   },
@@ -26,7 +26,7 @@ export const EVENTS: Event[] = [
     description: "Short sunset sail from Nyhavn Harbour",
     startDate: "2025-10-26T18:00:00+02:00",
     endDate: "2025-10-26T20:00:00+02:00",
-    categoryId: "cat-3", // meetup
+    categorySlug: "meetup",
     locationId: "loc-3", // Nyhavn Harbour
     priceKind: "free",
   },
