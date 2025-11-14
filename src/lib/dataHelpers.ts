@@ -1,8 +1,8 @@
 import type { Event, EventWithRelations } from "@/types/event";
-import type { Job, JobWithRelations } from "@/types/job";
+import type { JobWithRelations } from "@/types/job";
 import { LOCATIONS } from "@/data/locations";
 import { CATEGORIES } from "@/data/categories";
-import { JOB_REQUIREMENTS, JOB_EXPERIENCE, JOB_QUALIFICATIONS } from "@/data/jobs";
+import { getJobById } from "@/features/jobs/api";
 
 /**
  * Helper to get event with relations (location, category)
@@ -35,28 +35,25 @@ export function getEventWithRelations(event: Event): EventWithRelations {
 /**
  * Helper to get job with relations (location, requirements, experience, qualifications)
  */
-export function getJobWithRelations(job: Job): JobWithRelations {
-  const location = LOCATIONS.find((loc) => loc.id === job.locationId);
-  const requirements = JOB_REQUIREMENTS.filter((req) => req.jobId === job.id).sort((a, b) => a.order - b.order);
-  const experience = JOB_EXPERIENCE.filter((exp) => exp.jobId === job.id).sort((a, b) => a.order - b.order);
-  const qualifications = JOB_QUALIFICATIONS.filter((qual) => qual.jobId === job.id).sort((a, b) => a.order - b.order);
-
-  if (!location) {
-    throw new Error(`Missing location for job ${job.id}`);
+export async function getJobWithRelations(
+  job: JobWithRelations
+): Promise<JobWithRelations> {
+  if (
+    job.location?.id &&
+    typeof job.location.longitude === "number" &&
+    typeof job.location.latitude === "number"
+  ) {
+    return job;
   }
 
-  return {
-    ...job,
-    location: {
-      id: location.id,
-      name: location.name,
-      address: location.address,
-      longitude: location.longitude,
-      latitude: location.latitude,
-    },
-    requirements,
-    experience,
-    qualifications,
-  };
-}
+  if (!job.id) {
+    throw new Error("getJobWithRelations: job has no id");
+  }
 
+  const full = await getJobById(job.id);
+  if (!full) {
+    throw new Error(`Job ${job.id} not found`);
+  }
+
+  return full;
+}
