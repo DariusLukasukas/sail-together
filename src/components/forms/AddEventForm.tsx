@@ -1,15 +1,15 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Field, FieldDescription, FieldLabel, FieldError } from "../ui/field";
 import { Input } from "../ui/input";
 import { EVENT_TYPES } from "../searchbar/SearchEvent";
 import { Button } from "../ui/button";
 import MapWithGeocoder from "../map/MapWithGeocoder";
-import { useState } from "react";
-import { createEvent, createLocation } from "@/features/events/api";
 import { Spinner } from "../ui/spinner";
+import { createEvent } from "@/features/events/api";
+import { getCurrentUser } from "@/lib/parse/auth";
 import type { CategorySlug } from "@/types/category";
 import type { Currency } from "@/types/event";
-import { getCurrentUser } from "@/lib/parse/auth";
 
 interface LocationData {
   name: string;
@@ -18,29 +18,65 @@ interface LocationData {
   latitude: number;
 }
 
-export default function AddEventForm({ className, ...props }: React.ComponentProps<"form">) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [location, setLocation] = useState<LocationData | null>(null);
-  const [category, setCategory] = useState<CategorySlug | null>(null);
-  const [priceKind, setPriceKind] = useState<"free" | "paid" | null>(null);
-  const [priceAmount, setPriceAmount] = useState("");
-  const [priceCurrency, setPriceCurrency] = useState<Currency>("DKK");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
+interface AddEventFormProps {
+  onSuccess?: () => void;
+}
+
+type EventFormState = {
+  title: string;
+  description: string;
+  location: LocationData | null;
+  category: CategorySlug | null;
+  priceKind: "free" | "paid" | null;
+  priceAmount: string;
+  priceCurrency: Currency;
+  startDate: string;
+  endDate: string;
+  imageFile: File | null;
+};
+
+const INITIAL_FORM_STATE: EventFormState = {
+  title: "",
+  description: "",
+  location: null,
+  category: null,
+  priceKind: null,
+  priceAmount: "",
+  priceCurrency: "DKK",
+  startDate: "",
+  endDate: "",
+  imageFile: null,
+};
+
+export default function AddEventForm({
+  className,
+  onSuccess,
+  ...props
+}: React.ComponentProps<"form"> & AddEventFormProps) {
+  const [form, setForm] = useState<EventFormState>(INITIAL_FORM_STATE);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  function update<Key extends keyof EventFormState>(key: Key, value: EventFormState[Key]) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function resetForm() {
+    setForm(INITIAL_FORM_STATE);
+    setError("");
+    setSuccess("");
+  }
+
   // Validation
-  const hasTitle = title.trim().length > 0;
-  const hasLocation = location !== null;
-  const hasCategory = category !== null;
-  const hasPriceKind = priceKind !== null;
-  const hasStartDate = startDate !== "";
+  const hasTitle = form.title.trim().length > 0;
+  const hasLocation = form.location !== null;
+  const hasCategory = form.category !== null;
+  const hasPriceKind = form.priceKind !== null;
+  const hasStartDate = form.startDate !== "";
   const isValidPriceAmount =
-    priceKind === "free" || (priceKind === "paid" && priceAmount && parseFloat(priceAmount) > 0);
+    form.priceKind === "free" ||
+    (form.priceKind === "paid" && form.priceAmount && parseFloat(form.priceAmount) > 0);
 
   const isFormValid =
     hasTitle && hasLocation && hasCategory && hasPriceKind && hasStartDate && isValidPriceAmount;
@@ -53,6 +89,7 @@ export default function AddEventForm({ className, ...props }: React.ComponentPro
     const currentUser = getCurrentUser();
     if (!currentUser) {
       setError("You must be logged in to create an event");
+      setSuccess("");
       return;
     }
 
@@ -61,63 +98,47 @@ export default function AddEventForm({ className, ...props }: React.ComponentPro
     setIsSubmitting(true);
 
     try {
-      // Create location first
-      if (!location) {
+      if (!form.location) {
         throw new Error("Location is required");
       }
-
-      const locationObj = await createLocation({
-        name: location.name,
-        address: location.address,
-        longitude: location.longitude,
-        latitude: location.latitude,
-      });
-
-      // Create event
-      if (!category) {
+      if (!form.category) {
         throw new Error("Category is required");
       }
-
-      if (!priceKind) {
+      if (!form.priceKind) {
         throw new Error("Price kind is required");
       }
 
-      const startDateObj = new Date(startDate);
-      const endDateObj = endDate ? new Date(endDate) : undefined;
+      const startDateObj = new Date(form.startDate);
+      const endDateObj = form.endDate ? new Date(form.endDate) : undefined;
 
       await createEvent({
-        title: title.trim(),
-        description: description.trim() || undefined,
+        title: form.title.trim(),
+        description: form.description.trim() || undefined,
         startDate: startDateObj,
         endDate: endDateObj,
-        categorySlug: category,
-        locationId: locationObj.id,
-        priceKind,
-        priceAmount: priceKind === "paid" && priceAmount ? parseFloat(priceAmount) : undefined,
-        priceCurrency: priceKind === "paid" ? priceCurrency : undefined,
+        categorySlug: form.category,
+        location: form.location,
+        priceKind: form.priceKind,
+        priceAmount:
+          form.priceKind === "paid" && form.priceAmount ? parseFloat(form.priceAmount) : undefined,
+        priceCurrency: form.priceKind === "paid" ? form.priceCurrency : undefined,
       });
 
-      // TODO: Handle image upload when schema is updated
-      if (imageFile) {
-        console.log("Image upload will be handled later:", imageFile.name);
+      if (form.imageFile) {
+        console.log("Image upload will be handled later:", form.imageFile.name);
       }
 
       setSuccess("Event created successfully!");
+      setError("");
+      resetForm();
 
-      // Reset form
-      setTitle("");
-      setDescription("");
-      setLocation(null);
-      setCategory(null);
-      setPriceKind(null);
-      setPriceAmount("");
-      setPriceCurrency("DKK");
-      setStartDate("");
-      setEndDate("");
-      setImageFile(null);
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (err: any) {
       const message = err instanceof Error ? err.message : "Failed to create event";
       setError(message);
+      setSuccess("");
       console.error("Error creating event:", err);
     } finally {
       setIsSubmitting(false);
@@ -125,15 +146,19 @@ export default function AddEventForm({ className, ...props }: React.ComponentPro
   }
 
   return (
-    <form onSubmit={handleSubmit} className={cn("flex flex-col gap-8 py-4", className)} {...props}>
+    <form
+      onSubmit={handleSubmit}
+      className={cn("flex w-full flex-col gap-8 py-4", className)}
+      {...props}
+    >
       <Field>
         <FieldLabel htmlFor="title">What do you want to call this event?</FieldLabel>
         <Input
           id="title"
           type="text"
           placeholder="e.g. Evening sail, Marina party"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          value={form.title}
+          onChange={(e) => update("title", e.target.value)}
           required
         />
       </Field>
@@ -147,8 +172,8 @@ export default function AddEventForm({ className, ...props }: React.ComponentPro
         <Input
           id="description"
           type="text"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          value={form.description}
+          onChange={(e) => update("description", e.target.value)}
         />
       </Field>
 
@@ -157,7 +182,12 @@ export default function AddEventForm({ className, ...props }: React.ComponentPro
         <FieldDescription>
           Add the marina, harbor, or meeting point so sailors can find it on the map.
         </FieldDescription>
-        <MapWithGeocoder onLocationSelect={(loc) => setLocation(loc)} value={location} />
+
+        <MapWithGeocoder
+          onLocationSelect={(loc) => update("location", loc)}
+          value={form.location}
+        />
+
         {!hasLocation && (
           <FieldError errors={[{ message: "Please select a location on the map" }]} />
         )}
@@ -165,15 +195,15 @@ export default function AddEventForm({ className, ...props }: React.ComponentPro
 
       <Field>
         <FieldLabel htmlFor="category">What type of event are you hosting?</FieldLabel>
-        <Input id="category" type="hidden" value={category || ""} />
+        <Input id="category" type="hidden" value={form.category || ""} />
         <div className="grid grid-cols-3 gap-4">
           {EVENT_TYPES.map((event) => (
             <Button
               key={event.id}
               type="button"
-              variant={category === event.id ? "default" : "outline"}
+              variant={form.category === event.id ? "default" : "outline"}
               className="py-8"
-              onClick={() => setCategory(event.id)}
+              onClick={() => update("category", event.id as CategorySlug)}
             >
               {event.label}
             </Button>
@@ -188,8 +218,8 @@ export default function AddEventForm({ className, ...props }: React.ComponentPro
         <Input
           id="startDate"
           type="datetime-local"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
+          value={form.startDate}
+          onChange={(e) => update("startDate", e.target.value)}
           required
         />
         {!hasStartDate && <FieldError errors={[{ message: "Start date is required" }]} />}
@@ -203,9 +233,9 @@ export default function AddEventForm({ className, ...props }: React.ComponentPro
         <Input
           id="endDate"
           type="datetime-local"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          min={startDate || undefined}
+          value={form.endDate}
+          onChange={(e) => update("endDate", e.target.value)}
+          min={form.startDate || undefined}
         />
       </Field>
 
@@ -214,22 +244,22 @@ export default function AddEventForm({ className, ...props }: React.ComponentPro
         <div className="grid grid-cols-2 gap-4">
           <Button
             type="button"
-            variant={priceKind === "paid" ? "default" : "outline"}
+            variant={form.priceKind === "paid" ? "default" : "outline"}
             className="py-8"
             onClick={() => {
-              setPriceKind("paid");
-              setPriceAmount("");
+              update("priceKind", "paid");
+              update("priceAmount", "");
             }}
           >
             Paid
           </Button>
           <Button
             type="button"
-            variant={priceKind === "free" ? "default" : "outline"}
+            variant={form.priceKind === "free" ? "default" : "outline"}
             className="py-8"
             onClick={() => {
-              setPriceKind("free");
-              setPriceAmount("");
+              update("priceKind", "free");
+              update("priceAmount", "");
             }}
           >
             Free
@@ -238,21 +268,21 @@ export default function AddEventForm({ className, ...props }: React.ComponentPro
         {!hasPriceKind && <FieldError errors={[{ message: "Please select pricing type" }]} />}
       </Field>
 
-      {priceKind === "paid" && (
+      {form.priceKind === "paid" && (
         <>
           <Field>
             <FieldLabel htmlFor="priceAmount">Price Amount</FieldLabel>
             <Input
               id="priceAmount"
               type="number"
-              step="0.01"
-              min="0.01"
-              placeholder="0.00"
-              value={priceAmount}
-              onChange={(e) => setPriceAmount(e.target.value)}
-              required={priceKind === "paid"}
+              step="1"
+              min="1"
+              placeholder="1"
+              value={form.priceAmount}
+              onChange={(e) => update("priceAmount", e.target.value)}
+              required
             />
-            {priceKind === "paid" && !isValidPriceAmount && (
+            {form.priceKind === "paid" && !isValidPriceAmount && (
               <FieldError errors={[{ message: "Please enter a valid price amount" }]} />
             )}
           </Field>
@@ -266,8 +296,8 @@ export default function AddEventForm({ className, ...props }: React.ComponentPro
                 "placeholder:text-muted-foreground focus-visible:ring-ring/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:outline-none",
                 "disabled:cursor-not-allowed disabled:opacity-50"
               )}
-              value={priceCurrency}
-              onChange={(e) => setPriceCurrency(e.target.value as Currency)}
+              value={form.priceCurrency}
+              onChange={(e) => update("priceCurrency", e.target.value as Currency)}
             >
               <option value="DKK">DKK</option>
               <option value="EUR">EUR</option>
@@ -290,7 +320,7 @@ export default function AddEventForm({ className, ...props }: React.ComponentPro
           className="border-2 border-dashed"
           onChange={(e) => {
             const file = e.target.files?.[0] || null;
-            setImageFile(file);
+            update("imageFile", file);
           }}
         />
       </Field>
@@ -316,35 +346,11 @@ export default function AddEventForm({ className, ...props }: React.ComponentPro
       )}
 
       <div className="flex gap-2">
-        <Button
-          type="button"
-          size={"lg"}
-          variant={"secondary"}
-          className="flex-1"
-          onClick={() => {
-            setTitle("");
-            setDescription("");
-            setLocation(null);
-            setCategory(null);
-            setPriceKind(null);
-            setPriceAmount("");
-            setPriceCurrency("DKK");
-            setStartDate("");
-            setEndDate("");
-            setImageFile(null);
-            setError("");
-            setSuccess("");
-          }}
-        >
+        <Button type="button" size="lg" className="flex-1" variant="secondary" onClick={resetForm}>
           Cancel
         </Button>
 
-        <Button
-          type="submit"
-          size={"lg"}
-          className="flex-1"
-          disabled={!isFormValid || isSubmitting}
-        >
+        <Button type="submit" size="lg" className="flex-1" disabled={!isFormValid || isSubmitting}>
           {isSubmitting && <Spinner />}
           Create
         </Button>

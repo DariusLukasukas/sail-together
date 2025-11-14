@@ -1,7 +1,7 @@
 // React hooks wrapping the API calls
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createEvent, getEvents } from "./api";
-import type { Event } from "@/types/event";
+import type { EventWithRelations } from "@/types/event";
 import type { CategorySlug } from "@/types/category";
 import type { Currency } from "@/types/event";
 
@@ -15,7 +15,7 @@ export function useCreateEvent() {
         startDate,
         endDate,
         categorySlug,
-        locationId,
+        location,
         priceKind,
         priceAmount,
         priceCurrency,
@@ -25,7 +25,12 @@ export function useCreateEvent() {
         startDate: Date;
         endDate?: Date;
         categorySlug: CategorySlug;
-        locationId: string;
+        location: {
+            name: string;
+            address: string;
+            longitude: number;
+            latitude: number;
+        };
         priceKind: "free" | "paid";
         priceAmount?: number;
         priceCurrency?: Currency;
@@ -39,7 +44,7 @@ export function useCreateEvent() {
                 startDate,
                 endDate,
                 categorySlug,
-                locationId,
+                location,
                 priceKind,
                 priceAmount,
                 priceCurrency,
@@ -57,26 +62,35 @@ export function useCreateEvent() {
     return { create, isLoading, error };
 }
 
-export function useEvents() {
-    const [events, setEvents] = useState<Event[]>([]);
+export function useEvents(limit?: number, autoFetch = true) {
+    const [events, setEvents] = useState<EventWithRelations[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchEvents = async (limit?: number) => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const results = await getEvents(limit);
-            setEvents(results);
-            return results;
-        } catch (err: any) {
-            const message = err instanceof Error ? err.message : "Failed to fetch events";
-            setError(message);
-            throw err;
-        } finally {
-            setIsLoading(false);
+    const fetchEvents = useCallback(
+        async (fetchLimit?: number) => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                const results = await getEvents(fetchLimit ?? limit);
+                setEvents(results);
+                return results;
+            } catch (err: any) {
+                const message = err instanceof Error ? err.message : "Failed to fetch events";
+                setError(message);
+                throw err;
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [limit]
+    );
+
+    useEffect(() => {
+        if (autoFetch) {
+            fetchEvents();
         }
-    };
+    }, [autoFetch, fetchEvents]);
 
     return { events, fetchEvents, isLoading, error };
 }
