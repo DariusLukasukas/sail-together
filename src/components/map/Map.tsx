@@ -74,8 +74,8 @@ export default function Map({ events, jobs }: MapProps) {
   }, [mapLoaded]);
 
   return (
-    <div className="relative h-full w-full grow overflow-hidden rounded-2xl">
-      <div ref={mapContainerRef} className="absolute inset-0 h-full w-full" />
+    <div className="relative size-full grow overflow-hidden rounded-2xl">
+      <div ref={mapContainerRef} className="absolute inset-0 size-full" />
       {(mapLoaded &&
         events?.features.map((location) => (
           <Marker

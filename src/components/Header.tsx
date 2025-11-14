@@ -5,6 +5,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { getCurrentUser, logOut } from "@/lib/parse/auth";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "./ui/dropdown-menu";
+import { CircleUserRound, Heart, Map, Menu, Settings } from "lucide-react";
 
 interface Navbar {
   to: string;
@@ -35,6 +43,9 @@ export default function Header() {
   return (
     <header className="bg-background sticky top-0 z-50 w-full py-2">
       <div className="flex flex-row items-center">
+        {/* LOGO */}
+        <h1 className="text-2xl font-extrabold text-nowrap text-blue-500 select-none">Open Sail</h1>
+
         <nav aria-label="Primary" className="absolute left-1/2 -translate-x-1/2">
           <ul className="flex list-none gap-0.5">
             {NAVIGATION.map(({ to, label, end }) => (
@@ -57,7 +68,7 @@ export default function Header() {
           </ul>
         </nav>
 
-        <div className="ml-auto flex items-center gap-4">
+        <div className="ml-auto flex items-center gap-3">
           {user ? (
             <>
               <NavLink to={"/add-listing"}>
@@ -65,22 +76,49 @@ export default function Header() {
               </NavLink>
 
               <NavLink to={"/profile"}>
-                <Avatar className="size-10 select-none">
+                <Avatar className="size-9 select-none">
                   <AvatarImage src={avatar} alt="profile avatar" />
                   <AvatarFallback>CL</AvatarFallback>
                 </Avatar>
               </NavLink>
 
-              <Button variant={"ghost"} onClick={handleSignOut}>
-                Sign out
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    aria-label="Open menu"
+                    variant="outline"
+                    size="icon"
+                    className="select-none"
+                  >
+                    <Menu strokeWidth={3} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="mt-2 w-60 rounded-xl py-2 font-medium">
+                  <DropdownMenuItem>
+                    <Heart strokeWidth={2} />
+                    Favourites
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Map strokeWidth={2} />
+                    Trips
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    <CircleUserRound strokeWidth={2} /> Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="mx-3" />
+                  <DropdownMenuItem>
+                    <Settings strokeWidth={2} /> Account Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="mx-3" />
+                  <DropdownMenuItem onClick={handleSignOut}>Sign out</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <>
               <NavLink to="/login">
                 <Button variant={"ghost"}>Log in</Button>
               </NavLink>
-
               <NavLink to="/signup">
                 <Button variant={"secondary"}>Sign up</Button>
               </NavLink>
