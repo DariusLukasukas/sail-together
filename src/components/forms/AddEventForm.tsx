@@ -6,7 +6,7 @@ import { EVENT_TYPES } from "../searchbar/SearchEvent";
 import { Button } from "../ui/button";
 import MapWithGeocoder from "../map/MapWithGeocoder";
 import { Spinner } from "../ui/spinner";
-import { createEvent, createLocation } from "@/features/events/api";
+import { createEvent } from "@/features/events/api";
 import { getCurrentUser } from "@/lib/parse/auth";
 import type { CategorySlug } from "@/types/category";
 import type { Currency } from "@/types/event";
@@ -108,14 +108,6 @@ export default function AddEventForm({
         throw new Error("Price kind is required");
       }
 
-      // Create location first
-      const locationObj = await createLocation({
-        name: form.location.name,
-        address: form.location.address,
-        longitude: form.location.longitude,
-        latitude: form.location.latitude,
-      });
-
       const startDateObj = new Date(form.startDate);
       const endDateObj = form.endDate ? new Date(form.endDate) : undefined;
 
@@ -125,7 +117,7 @@ export default function AddEventForm({
         startDate: startDateObj,
         endDate: endDateObj,
         categorySlug: form.category,
-        locationId: locationObj.id,
+        location: form.location,
         priceKind: form.priceKind,
         priceAmount:
           form.priceKind === "paid" && form.priceAmount ? parseFloat(form.priceAmount) : undefined,

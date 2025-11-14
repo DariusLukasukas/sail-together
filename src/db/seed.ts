@@ -1,69 +1,10 @@
 import Parse from "@/lib/parse/server";
-import type { CategorySlug } from "@/types/category";
-
-interface CategoryData {
-  slug: CategorySlug;
-  name: string;
-  description: string;
-}
-
-const CATEGORIES_TO_SEED: CategoryData[] = [
-  {
-    slug: "race",
-    name: "Race / Regatta",
-    description: "Competitive sailing events and club regattas.",
-  },
-  {
-    slug: "cruise",
-    name: "Cruise / Trip",
-    description: "Casual group trips and weekend sails.",
-  },
-  {
-    slug: "meetup",
-    name: "Meetup / Social",
-    description: "Dock gatherings and community meetups.",
-  },
-  {
-    slug: "training",
-    name: "Training / Workshop",
-    description: "Sailing lessons or navigation courses.",
-  },
-  {
-    slug: "maintenance",
-    name: "Maintenance",
-    description: "Workdays, boat prep, or dock repairs.",
-  },
-  {
-    slug: "party",
-    name: "Party",
-    description: "After-sail parties and harbor celebrations.",
-  },
-  {
-    slug: "meeting",
-    name: "Club Meeting",
-    description: "Official club meetings or AGMs.",
-  },
-  {
-    slug: "open-day",
-    name: "Open Day / Try Sailing",
-    description: "Events for new sailors or public demos.",
-  },
-  {
-    slug: "charity",
-    name: "Charity Sail",
-    description: "Fundraisers or awareness regattas.",
-  },
-  {
-    slug: "other",
-    name: "Other",
-    description: "Custom or unclassified events.",
-  },
-];
+import { CATEGORIES } from "@/data/categories";
 
 export async function seedCategories() {
   console.log("🌱 Seeding categories...");
 
-  for (const category of CATEGORIES_TO_SEED) {
+  for (const category of CATEGORIES) {
     const Category = Parse.Object.extend("Category");
     const query = new Parse.Query(Category);
     query.equalTo("slug", category.slug);

@@ -15,7 +15,7 @@ export function useCreateEvent() {
         startDate,
         endDate,
         categorySlug,
-        locationId,
+        location,
         priceKind,
         priceAmount,
         priceCurrency,
@@ -25,7 +25,12 @@ export function useCreateEvent() {
         startDate: Date;
         endDate?: Date;
         categorySlug: CategorySlug;
-        locationId: string;
+        location: {
+            name: string;
+            address: string;
+            longitude: number;
+            latitude: number;
+        };
         priceKind: "free" | "paid";
         priceAmount?: number;
         priceCurrency?: Currency;
@@ -39,7 +44,7 @@ export function useCreateEvent() {
                 startDate,
                 endDate,
                 categorySlug,
-                locationId,
+                location,
                 priceKind,
                 priceAmount,
                 priceCurrency,

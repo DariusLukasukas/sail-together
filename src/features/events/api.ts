@@ -1,10 +1,10 @@
 import Parse from "@/lib/parse/client";
 import type { EventWithRelations } from "@/types/event";
 import type { CategorySlug } from "@/types/category";
+import { CATEGORIES } from "@/data/categories";
 
 /**
  * Fetches events from the database with all relations included.
- * Returns EventWithRelations which includes full category, location, and createdBy objects.
  */
 export async function getEvents(limit = 20): Promise<EventWithRelations[]> {
     const query = new Parse.Query("Event");
@@ -82,46 +82,85 @@ export async function getEvents(limit = 20): Promise<EventWithRelations[]> {
     }
 }
 
-export async function getCategoryBySlug(slug: CategorySlug) {
-    const query = new Parse.Query("Category");
-    query.equalTo("slug", slug);
-    try {
-        const result = await query.first();
-        if (!result) {
-            throw new Error(`Category with slug "${slug}" not found`);
-        }
-        return result;
-    } catch (err: any) {
-        console.error("Failed to fetch category:", err.message);
-        throw err;
+/**
+ * Cache for category Parse objects - loaded once and reused
+ */
+let categoryCache: Map<CategorySlug, Parse.Object> | null = null;
+let categoryCachePromise: Promise<Map<CategorySlug, Parse.Object>> | null = null;
+
+/**
+ * Load all categories from database once and cache them by slug
+ */
+async function loadCategoryCache(): Promise<Map<CategorySlug, Parse.Object>> {
+    if (categoryCache) {
+        return categoryCache;
     }
+
+    if (categoryCachePromise) {
+        return categoryCachePromise;
+    }
+
+    categoryCachePromise = (async () => {
+        try {
+            const query = new Parse.Query("Category");
+            const categories = await query.find();
+
+            const cache = new Map<CategorySlug, Parse.Object>();
+            categories.forEach((cat) => {
+                const slug = cat.get("slug") as CategorySlug;
+                if (slug) {
+                    cache.set(slug, cat);
+                }
+            });
+
+            // Verify all predefined categories exist
+            const missingCategories: CategorySlug[] = [];
+            CATEGORIES.forEach((predefined) => {
+                if (!cache.has(predefined.slug)) {
+                    missingCategories.push(predefined.slug);
+                }
+            });
+
+            if (missingCategories.length > 0) {
+                console.warn(
+                    `⚠️ Some predefined categories are missing from database: ${missingCategories.join(", ")}`
+                );
+            }
+
+            categoryCache = cache;
+            return cache;
+        } catch (err: any) {
+            console.error("Failed to load category cache:", err.message);
+            throw err;
+        } finally {
+            categoryCachePromise = null;
+        }
+    })();
+
+    return categoryCachePromise;
 }
 
-export async function createLocation({
-    name,
-    address,
-    longitude,
-    latitude,
-}: {
-    name: string;
-    address: string;
-    longitude: number;
-    latitude: number;
-}): Promise<Parse.Object> {
-    const Location = Parse.Object.extend("Location");
-    const location = new Location();
-    location.set("name", name);
-    location.set("address", address);
-    location.set("longitude", longitude);
-    location.set("latitude", latitude);
-
-    try {
-        const saved = await location.save();
-        return saved;
-    } catch (err: any) {
-        console.error("Failed to create location:", err.message);
-        throw err;
+/**
+ * Get category Parse object by slug from cache
+ * Categories are loaded once and cached for performance
+ */
+export async function getCategoryBySlug(slug: CategorySlug): Promise<Parse.Object> {
+    // Verify slug is valid
+    const isValid = CATEGORIES.some((cat) => cat.slug === slug);
+    if (!isValid) {
+        throw new Error(`Invalid category slug: "${slug}"`);
     }
+
+    const cache = await loadCategoryCache();
+    const category = cache.get(slug);
+
+    if (!category) {
+        throw new Error(
+            `Category with slug "${slug}" not found in database. Make sure categories are seeded.`
+        );
+    }
+
+    return category;
 }
 
 export async function createEvent({
@@ -130,7 +169,7 @@ export async function createEvent({
     startDate,
     endDate,
     categorySlug,
-    locationId,
+    location,
     priceKind,
     priceAmount,
     priceCurrency,
@@ -140,7 +179,12 @@ export async function createEvent({
     startDate: Date;
     endDate?: Date;
     categorySlug: CategorySlug;
-    locationId: string;
+    location: {
+        name: string;
+        address: string;
+        longitude: number;
+        latitude: number;
+    };
     priceKind: "free" | "paid";
     priceAmount?: number;
     priceCurrency?: "DKK" | "EUR" | "USD";
@@ -154,20 +198,20 @@ export async function createEvent({
         throw new Error("User must be logged in to create an event");
     }
 
-    // Get category
     const category = await getCategoryBySlug(categorySlug);
 
-    // Set required fields
+    const Location = Parse.Object.extend("Location");
+    const locationObj = new Location();
+    locationObj.set("name", location.name);
+    locationObj.set("address", location.address);
+    locationObj.set("longitude", location.longitude);
+    locationObj.set("latitude", location.latitude);
+
+    // Set required fields on Event
     event.set("title", title);
     event.set("startDate", startDate);
     event.set("categoryId", category);
-
-    // Create a pointer to the location
-    const locationPointer = Parse.Object.extend("Location");
-    const locationObj = new locationPointer();
-    locationObj.id = locationId;
-    event.set("locationId", locationObj);
-
+    event.set("locationId", locationObj); // Set the unsaved Location object as pointer
     event.set("priceKind", priceKind);
     event.set("createdById", currentUser);
 
@@ -180,6 +224,7 @@ export async function createEvent({
     }
 
     try {
+        // Save Event - Parse will automatically save the Location first!
         const saved = await event.save();
         return saved;
     } catch (err: any) {
