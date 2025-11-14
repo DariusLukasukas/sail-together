@@ -5,6 +5,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { getCurrentUser, logOut } from "@/lib/parse/auth";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "./ui/dropdown-menu";
+import { CircleUserRound, Heart, Map, Menu } from "lucide-react";
 
 interface Navbar {
   to: string;
@@ -60,7 +68,7 @@ export default function Header() {
           </ul>
         </nav>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-3">
           {user ? (
             <>
               <NavLink to={"/add-listing"}>
@@ -68,15 +76,39 @@ export default function Header() {
               </NavLink>
 
               <NavLink to={"/profile"}>
-                <Avatar className="size-10 select-none">
+                <Avatar className="size-9 select-none">
                   <AvatarImage src={avatar} alt="profile avatar" />
                   <AvatarFallback>CL</AvatarFallback>
                 </Avatar>
               </NavLink>
 
-              <Button variant={"ghost"} onClick={handleSignOut}>
-                Sign out
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    aria-label="Open menu"
+                    size="icon"
+                    className="select-none"
+                  >
+                    <Menu strokeWidth={3} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="mt-2 w-60 rounded-xl py-2 font-medium">
+                  <DropdownMenuItem>
+                    <Heart strokeWidth={2} />
+                    Favourites
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Map strokeWidth={2} />
+                    Trips
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <CircleUserRound strokeWidth={2} /> Account Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="mx-3" />
+                  <DropdownMenuItem onClick={handleSignOut}>Sign out</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <>
