@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Label } from "../ui/label";
+import { Field, FieldLabel, FieldDescription } from "../ui/field";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Spinner } from "../ui/spinner";
-import Parse from "@/lib/parse/client";
 import { getCurrentUser } from "@/lib/parse/auth";
+import { createPost } from "@/features/posts/api";
 
 type CreatePostFormProps = React.ComponentProps<"form"> & {
   onCancel?: () => void;
@@ -27,8 +27,9 @@ export default function CreatePostForm({
   const hasMediaUrl = mediaUrl.trim().length > 0;
   const isFormValid = hasMediaUrl;
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
     if (!isFormValid || isSubmitting) return;
 
     const currentUser = getCurrentUser();
@@ -42,23 +43,12 @@ export default function CreatePostForm({
     setIsSubmitting(true);
 
     try {
-      const Post = Parse.Object.extend("Post");
-      const post = new Post();
-
-      // Pointer til _User
-      post.set("userId", currentUser);
-
-      // Matcher Post-schema: mediaUrl required, mediaAlt optional
-      post.set("mediaUrl", mediaUrl.trim());
-      if (caption.trim()) {
-        post.set("mediaAlt", caption.trim());
-      }
-
-      // Defaultværdier
-      post.set("likeCount", 0);
-      post.set("commentCount", 0);
-
-      await post.save();
+      await createPost({
+        mediaUrl: mediaUrl.trim(),
+        mediaAlt: caption.trim() || "",
+        // Missing loc for formula, therefore empty string
+        locationId: "",
+      });
 
       setSuccess("Post created successfully!");
       setMediaUrl("");
@@ -81,17 +71,23 @@ export default function CreatePostForm({
     setCaption("");
     setError("");
     setSuccess("");
-    if (onCancel) onCancel();
+
+    if (onCancel) {
+      onCancel();
+    }
   }
 
   return (
     <form
       onSubmit={handleSubmit}
-      className={cn("grid gap-4 [&>div]:grid [&>div]:gap-3 py-2", className)}
+      className={cn("flex flex-col gap-8 py-4", className)}
       {...props}
     >
-      <div>
-        <Label htmlFor="caption">Text</Label>
+      <Field>
+        <FieldLabel htmlFor="caption">Text for post</FieldLabel>
+        <FieldDescription>
+          Share whats on your mind
+        </FieldDescription>
         <Input
           id="caption"
           type="text"
@@ -99,10 +95,13 @@ export default function CreatePostForm({
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
         />
-      </div>
+      </Field>
 
-      <div>
-        <Label htmlFor="mediaUrl">Image URL</Label>
+      <Field>
+        <FieldLabel htmlFor="mediaUrl">Image URL</FieldLabel>
+        <FieldDescription>
+          Paste a link to the image you want to share.
+        </FieldDescription>
         <Input
           id="mediaUrl"
           type="url"
@@ -112,13 +111,13 @@ export default function CreatePostForm({
           onChange={(e) => setMediaUrl(e.target.value)}
           className="min-h-20"
         />
-      </div>
+      </Field>
 
       {error && (
         <div
           role="alert"
           aria-live="polite"
-          className="w-full rounded-xl border border-destructive/20 bg-destructive/10 px-3 py-2 text-center text-sm font-medium text-destructive"
+          className="bg-destructive/10 text-destructive border-destructive/20 w-full rounded-xl border px-3 py-2 text-center text-sm font-medium"
         >
           {error}
         </div>
@@ -134,19 +133,21 @@ export default function CreatePostForm({
         </div>
       )}
 
-      <div className="mt-1 flex w-full gap-2">
+      <div className="flex gap-2">
         <Button
           type="button"
+          size="lg"
+          variant="secondary"
+          className="flex-1"
           onClick={handleCancelClick}
-          variant="outline"
-          className="w-full rounded-xl border border-gray-200 bg-white"
         >
           Cancel
         </Button>
+
         <Button
           type="submit"
           size="lg"
-          className="w-full rounded-xl bg-blue-500 text-white hover:bg-blue-600"
+          className="flex-1"
           disabled={!isFormValid || isSubmitting}
         >
           {isSubmitting && <Spinner />}
