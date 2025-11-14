@@ -3,7 +3,7 @@ import CalendarDaysIcon from "@/components/icons/CalendarDaysIcon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Container } from "@/components/ui/container";
 import { Rating } from "@/components/ui/rating";
-import { USER } from "@/data/user";
+import { getUserProfile } from "@/data/user";
 import { Navigate } from "react-router-dom";
 import { format } from "date-fns";
 import LocationPin from "@/components/icons/LocationPin";
@@ -14,6 +14,7 @@ import GlobeIcon from "@/components/icons/GlobeIcon";
 import { Media, MediaFallback } from "@/components/ui/media";
 
 export default function Profile() {
+  const userProfile = getUserProfile();
   const {
     avatarUrl,
     name,
@@ -28,9 +29,9 @@ export default function Profile() {
     skills,
     feedback,
     experiences,
-  } = USER;
+  } = userProfile;
 
-  if (!USER) return <Navigate to="/404" replace />;
+  if (!userProfile) return <Navigate to="/404" replace />;
 
   return (
     <Container className="container mx-auto max-w-3xl p-2">
@@ -129,11 +130,11 @@ export default function Profile() {
             {feedback?.map((f) => (
               <li key={f.id} className="bg-muted w-full rounded-2xl p-4">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="leading-none font-semibold">{f.author ?? "Anonymous"}</p>
+                  <p className="leading-none font-semibold">{f.author.name ?? "Anonymous"}</p>
                   {f.createdAt && (
                     <time
                       className="text-muted-foreground text-xs font-medium"
-                      dateTime={f.createdAt}
+                      dateTime={f?.createdAt?.toString() ?? ""}
                     >
                       {format(new Date(f.createdAt), "MMM d, yyyy")}
                     </time>

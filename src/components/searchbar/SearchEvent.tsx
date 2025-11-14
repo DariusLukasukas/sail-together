@@ -4,7 +4,7 @@ import { useClickAway } from "@uidotdev/usehooks";
 import { DayPicker, type DateRange } from "react-day-picker";
 import "react-day-picker/style.css";
 import { addDays, format, isSaturday, isSunday, nextSaturday } from "date-fns";
-import type { Categories } from "@/types/event";
+import type { CategorySlug } from "@/types/category";
 
 interface SuggestedLocation {
   name: string;
@@ -13,7 +13,7 @@ interface SuggestedLocation {
 }
 
 interface EventTypeOption {
-  id: Categories;
+  id: CategorySlug;
   label: string;
   description: string;
   color: string;
@@ -37,7 +37,7 @@ const SUGGESTED_LOCATIONS: SuggestedLocation[] = [
   },
 ];
 
-const EVENT_TYPES: EventTypeOption[] = [
+export const EVENT_TYPES: EventTypeOption[] = [
   {
     id: "race",
     label: "Race / Regatta",
@@ -116,7 +116,7 @@ type State = {
   isOpen: boolean;
   stepIndex: number;
   where: string | null;
-  eventType: Categories | null;
+  eventType: CategorySlug | null;
   when?: DateRange | undefined;
 };
 
@@ -126,7 +126,7 @@ type Action =
   | { type: "TOGGLE_TAB"; index: number }
   | { type: "NEXT_STEP" }
   | { type: "SET_WHERE"; value: string | null }
-  | { type: "SET_EVENT_TYPE"; value: Categories | null }
+  | { type: "SET_EVENT_TYPE"; value: CategorySlug | null }
   | { type: "SET_WHEN"; value: DateRange | undefined };
 
 function reducer(state: State, action: Action) {
