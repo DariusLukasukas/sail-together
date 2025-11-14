@@ -1,8 +1,12 @@
 import Parse from "@/lib/parse/client";
-import type { Event } from "@/types/event";
+import type { EventWithRelations } from "@/types/event";
 import type { CategorySlug } from "@/types/category";
 
-export async function getEvents(limit = 20) {
+/**
+ * Fetches events from the database with all relations included.
+ * Returns EventWithRelations which includes full category, location, and createdBy objects.
+ */
+export async function getEvents(limit = 20): Promise<EventWithRelations[]> {
     const query = new Parse.Query("Event");
     query.include("categoryId");
     query.include("locationId");
@@ -12,21 +16,66 @@ export async function getEvents(limit = 20) {
 
     try {
         const results = await query.find();
-        return results.map((e) => ({
-            id: e.id,
-            title: e.get("title"),
-            description: e.get("description"),
-            isFavorite: e.get("isFavorite") || false,
-            startDate: e.get("startDate"),
-            endDate: e.get("endDate"),
-            categoryId: e.get("categoryId")?.id,
-            locationId: e.get("locationId")?.id,
-            createdById: e.get("createdById")?.id,
-            priceKind: e.get("priceKind"),
-            priceAmount: e.get("priceAmount"),
-            priceCurrency: e.get("priceCurrency"),
-            createdAt: e.get("createdAt"),
-        })) as Event[];
+        return results.map((e) => {
+            const category = e.get("categoryId");
+            const location = e.get("locationId");
+            const createdBy = e.get("createdById");
+
+            // Build the event with relations
+            const event: EventWithRelations = {
+                id: e.id,
+                title: e.get("title"),
+                description: e.get("description"),
+                isFavorite: e.get("isFavorite") || false,
+                startDate: e.get("startDate"),
+                endDate: e.get("endDate"),
+                priceKind: e.get("priceKind"),
+                priceAmount: e.get("priceAmount"),
+                priceCurrency: e.get("priceCurrency"),
+                createdAt: e.get("createdAt"),
+                updatedAt: e.get("updatedAt"),
+                // Relations
+                category: category
+                    ? {
+                        id: category.id,
+                        slug: category.get("slug") as CategorySlug,
+                        name: category.get("name"),
+                    }
+                    : {
+                        id: "",
+                        slug: "other" as CategorySlug,
+                        name: "Other",
+                    },
+                location: location
+                    ? {
+                        id: location.id,
+                        name: location.get("name"),
+                        address: location.get("address"),
+                        longitude: location.get("longitude"),
+                        latitude: location.get("latitude"),
+                    }
+                    : {
+                        id: "",
+                        name: "Location TBD",
+                        address: "Address TBD",
+                        longitude: 0,
+                        latitude: 0,
+                    },
+                // Keep IDs for direct access
+                categoryId: category?.id || "",
+                locationId: location?.id || "",
+                createdById: createdBy?.id,
+                createdBy: createdBy
+                    ? {
+                        id: createdBy.id,
+                        name: createdBy.get("name") || createdBy.get("username") || "Unknown",
+                        avatarUrl: createdBy.get("avatarUrl"),
+                    }
+                    : undefined,
+            };
+
+            return event;
+        });
     } catch (err: any) {
         console.error("Failed to fetch events:", err.message);
         throw err;
@@ -59,7 +108,6 @@ export async function createLocation({
     longitude: number;
     latitude: number;
 }): Promise<Parse.Object> {
-    // Check if location already exists (optional - you might want to dedupe by coordinates)
     const Location = Parse.Object.extend("Location");
     const location = new Location();
     location.set("name", name);

@@ -6,29 +6,56 @@ import { JOB_REQUIREMENTS, JOB_EXPERIENCE, JOB_QUALIFICATIONS } from "@/data/job
 
 /**
  * Helper to get event with relations (location, category)
+ * Works with both static data and database events
  */
-export function getEventWithRelations(event: Event): EventWithRelations {
+export function getEventWithRelations(event: Event & { _category?: any; _location?: any }): EventWithRelations {
+  // If event has embedded relations from API (prefixed with _)
+  if (event._location && event._category) {
+    return {
+      ...event,
+      location: event._location,
+      category: event._category,
+      createdBy: (event as any)._createdBy,
+    };
+  }
+
+  // Fallback to static data lookup
   const location = LOCATIONS.find((loc) => loc.id === event.locationId);
   const category = CATEGORIES.find((cat) => cat.id === event.categoryId);
 
-  if (!location || !category) {
-    throw new Error(`Missing location or category for event ${event.id}`);
-  }
+  // Provide fallback values if data is missing
+  const fallbackLocation = {
+    id: event.locationId || "unknown",
+    name: "Location TBD",
+    address: "Address TBD",
+    longitude: 0,
+    latitude: 0,
+  };
+
+  const fallbackCategory = {
+    id: event.categoryId || "unknown",
+    slug: "other" as const,
+    name: "Other",
+  };
 
   return {
     ...event,
-    location: {
-      id: location.id,
-      name: location.name,
-      address: location.address,
-      longitude: location.longitude,
-      latitude: location.latitude,
-    },
-    category: {
-      id: category.id,
-      slug: category.slug,
-      name: category.name,
-    },
+    location: location
+      ? {
+          id: location.id,
+          name: location.name,
+          address: location.address,
+          longitude: location.longitude,
+          latitude: location.latitude,
+        }
+      : fallbackLocation,
+    category: category
+      ? {
+          id: category.id,
+          slug: category.slug,
+          name: category.name,
+        }
+      : fallbackCategory,
   };
 }
 

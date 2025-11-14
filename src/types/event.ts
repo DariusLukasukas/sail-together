@@ -19,12 +19,12 @@ export interface Event {
   categoryId: string; // Foreign key to Category table
   locationId: string; // Foreign key to Location table
   createdById?: string; // Foreign key to User table (optional)
-  
+
   // Price fields (flattened from nested object)
   priceKind: "free" | "paid";
   priceAmount?: number; // Only set when priceKind === "paid"
   priceCurrency?: Currency; // Only set when priceKind === "paid"
-  
+
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -32,8 +32,9 @@ export interface Event {
 /**
  * Event with joined relations (for API responses)
  * Use this when you need the full location/category objects
+ * This is what the API returns when using Parse's include() method
  */
-export interface EventWithRelations extends Omit<Event, "categoryId" | "locationId"> {
+export interface EventWithRelations extends Omit<Event, "categoryId" | "locationId" | "createdById"> {
   category: {
     id: string;
     slug: CategorySlug;
@@ -51,4 +52,8 @@ export interface EventWithRelations extends Omit<Event, "categoryId" | "location
     name: string;
     avatarUrl?: string;
   };
+  // Keeping IDs for backward compatibility and direct access
+  categoryId: string;
+  locationId: string;
+  createdById?: string;
 }
