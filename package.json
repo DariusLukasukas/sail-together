@@ -20,6 +20,7 @@
     "@uidotdev/usehooks": "^2.4.1",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
+    "events": "^3.3.0",
     "lucide-react": "^0.546.0",
     "mapbox-gl": "^3.16.0",
     "parse": "^7.0.2",
@@ -32,6 +33,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
+    "@openinc/parse-server-schema": "^3.0.6",
     "@radix-ui/react-slot": "^1.2.3",
     "@tailwindcss/vite": "^4.1.15",
     "@types/node": "^24.9.1",

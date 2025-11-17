@@ -19,7 +19,7 @@ export async function createSchemas() {
   }
 
   // helper for idempotent schema creation
-  async function safeSave(schema: Parse.Schema, name: string) {
+  async function safeSave(schema: any, name: string) {
     try {
       await schema.save();
       console.log(`✅ Created schema: ${name}`);
@@ -63,7 +63,9 @@ export async function createSchemas() {
   } catch (err: any) {
     if (err.code === 103) {
       console.log("⚠️ Event schema already exists.");
-      console.log("⚠️ If it only has default fields, delete it in Back4App dashboard and run migration again.");
+      console.log(
+        "⚠️ If it only has default fields, delete it in Back4App dashboard and run migration again."
+      );
       console.log("⚠️ Or manually add fields one by one using update()");
 
       // Try to update with all fields (may not work if schema is empty)
