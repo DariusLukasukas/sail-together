@@ -42,7 +42,7 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-background/80 border-border sticky top-0 z-50 w-full py-2 backdrop-blur-sm">
+    <header className="bg-card border-border sticky top-0 z-50 w-full py-2">
       <div className="flex flex-row items-center">
         {/* LOGO */}
         <h1 className="text-2xl font-extrabold text-nowrap text-blue-500 select-none">Open Sail</h1>
