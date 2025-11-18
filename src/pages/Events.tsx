@@ -25,8 +25,10 @@ export default function Events() {
   );
 
   // Filter events based on map bounds
+  // Don't show events until map bounds are available to prevent flash of all events
   const filteredEvents = useMemo(() => {
-    if (!data || !mapBounds) return data;
+    if (!data) return undefined;
+    if (!mapBounds) return undefined; // Wait for map bounds before showing events
 
     return data.filter((event) => {
       const locationData = event.locationId as any;
@@ -53,16 +55,18 @@ export default function Events() {
   return (
     <>
       <SearchEvent />
-      <div className="relative grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="relative grid grid-cols-1 gap-6 md:grid-cols-2 md:items-start">
         <aside className="flex flex-col gap-4">
           {isLoading && <div>Loading...</div>}
 
           {error && <div>Error: {error.message}</div>}
 
+          {!isLoading && !error && !mapBounds && <div>Loading map...</div>}
+
           {filteredEvents && <EventSidebar events={filteredEvents} />}
         </aside>
 
-        <section className="sticky top-0 h-[calc(100vh-10rem)] md:col-start-2">
+        <section className="sticky top-4 h-[calc(100vh-5rem)] md:col-start-2">
           <Map events={eventsGeoJSON} onBoundsChange={handleBoundsChange} />
         </section>
       </div>
