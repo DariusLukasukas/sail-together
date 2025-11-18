@@ -1,60 +1,56 @@
-import type { Event, EventWithRelations } from "@/types/event";
-import type { Job, JobWithRelations } from "@/types/job";
+import type { EventAttributes, EventWithRelations } from "@/db/types/Event";
+import type { JobWithRelations } from "@/types/job";
 import type { CategorySlug } from "@/types/category";
-import { LOCATIONS } from "@/data/locations";
 import { CATEGORIES } from "@/data/categories";
 import { getJobById } from "@/features/jobs/api";
+import type { LocationAttributes } from "@/db/types/Location";
+import type { _UserAttributes } from "@/db/types/_User";
 
 /**
  * Helper to get event with relations (location, category)
- * Works with both static data and database events
+ * Uses spread operator similar to parseToJSON pattern
  */
-export function getEventWithRelations(event: Event & { _category?: any; _location?: any }): EventWithRelations {
-  // If event has embedded relations from API (prefixed with _)
-  if (event._location && event._category) {
-    return {
-      ...event,
-      location: event._location,
-      category: event._category,
-      createdBy: (event as any)._createdBy,
+export function getEventWithRelations(event: EventAttributes): EventWithRelations {
+  // Extract location from locationId (serialized LocationAttributes from Parse)
+  const locationData = event.locationId as unknown as LocationAttributes;
+  const location = {
+    id: locationData?.id || locationData?.objectId || "unknown",
+    name: locationData?.name || "Location TBD",
+    address: locationData?.address || "Address TBD",
+    longitude: locationData?.longitude || 0,
+    latitude: locationData?.latitude || 0,
+  };
+
+  // Extract createdBy from createdById (serialized _UserAttributes from Parse)
+  const userData = event.createdById as unknown as _UserAttributes;
+  const createdBy = userData
+    ? {
+      id: userData.id || userData.objectId || "unknown",
+      name: userData.name,
+      avatarUrl: userData.avatarUrl,
+    }
+    : undefined;
+
+  // Look up category from static data
+  const categoryData = CATEGORIES.find((cat) => cat.slug === event.categorySlug);
+  const category = categoryData
+    ? {
+      slug: categoryData.slug,
+      name: categoryData.name,
+    }
+    : {
+      slug: (event.categorySlug || "other") as CategorySlug,
+      name: "Other",
     };
-  }
 
-  // Fallback to static data lookup
-  const location = LOCATIONS.find((loc) => loc.id === event.locationId);
-  const category = CATEGORIES.find((cat) => cat.slug === event.categorySlug);
-
-  // Provide fallback values if data is missing
-  const fallbackLocation = {
-    id: event.locationId || "unknown",
-    name: "Location TBD",
-    address: "Address TBD",
-    longitude: 0,
-    latitude: 0,
-  };
-
-  const fallbackCategory = {
-    slug: (event.categorySlug || "other") as CategorySlug,
-    name: category?.name || "Other",
-  };
-
+  // Return with relations, using spread operator like parseToJSON
   return {
     ...event,
-    location: location
-      ? {
-        id: location.id,
-        name: location.name,
-        address: location.address,
-        longitude: location.longitude,
-        latitude: location.latitude,
-      }
-      : fallbackLocation,
-    category: category
-      ? {
-        slug: category.slug,
-        name: category.name,
-      }
-      : fallbackCategory,
+    location,
+    category,
+    createdBy,
+    locationId: location.id,
+    createdById: userData?.id || userData?.objectId,
   };
 }
 

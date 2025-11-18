@@ -1,9 +1,9 @@
-import type { EventWithRelations } from "@/types/event";
 import { useEventStore } from "@/store/useEventStore";
 import EventCard from "./EventCard";
+import type { EventAttributes } from "@/db/types";
 
 interface EventSidebarProps {
-  events: EventWithRelations[];
+  events: EventAttributes[];
 }
 
 export default function EventSidebar({ events }: EventSidebarProps) {
