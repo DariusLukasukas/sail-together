@@ -2,6 +2,7 @@ import Parse from "parse";
 
 import type { _User } from "./_User";
 import type { Location } from "./Location";
+import type { CategorySlug } from "@/types/category";
 
 export interface EventAttributes {
   id: string;
@@ -19,6 +20,28 @@ export interface EventAttributes {
   priceKind: string;
   startDate: Date;
   title: string;
+}
+
+export interface EventWithRelations extends Omit<EventAttributes, "locationId" | "createdById"> {
+  category: {
+    slug: CategorySlug;
+    name: string;
+  };
+  location: {
+    id: string;
+    name: string;
+    address: string;
+    longitude: number;
+    latitude: number;
+  };
+  createdBy?: {
+    id: string;
+    name?: string;
+    avatarUrl?: string;
+  };
+  // Keeping IDs for backward compatibility and direct access
+  locationId: string;
+  createdById?: string;
 }
 
 export class Event extends Parse.Object<EventAttributes> {
@@ -107,4 +130,3 @@ export class Event extends Parse.Object<EventAttributes> {
 }
 
 Parse.Object.registerSubclass("Event", Event);
-
