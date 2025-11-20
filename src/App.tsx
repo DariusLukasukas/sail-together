@@ -8,6 +8,10 @@ import JobPage from "@/pages/JobPage";
 import RootLayout from "@/layouts/RootLayout";
 import WizardLayout from "@/layouts/WizardLayout";
 import AddListingWizard from "@/pages/add-listing/AddListingWizard";
+import SignUpPage from "@/pages/auth/SignUp";
+import LoginPage from "@/pages/auth/Login";
+import GuestRoute from "@/components/GuestRoute";
+import AuthLayout from "@/layouts/AuthLayout";
 
 function App() {
   return (
@@ -18,6 +22,25 @@ function App() {
         <Route path="/events" element={<Events />} />
         <Route path="/explore" element={<Explore />} />
         <Route path="/profile" element={<Profile />} />
+      </Route>
+
+      <Route element={<AuthLayout />}>
+        <Route
+          path="/signup"
+          element={
+            <GuestRoute>
+              <SignUpPage />
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <GuestRoute>
+              <LoginPage />
+            </GuestRoute>
+          }
+        />
       </Route>
 
       <Route element={<WizardLayout />}>
