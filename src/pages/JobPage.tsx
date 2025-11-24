@@ -2,38 +2,48 @@ import { useState, useMemo, useEffect } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import { Heart, Clock, CalendarDays, Ship, MapPin } from "lucide-react";
 import { Container } from "@/components/ui/container";
-import { Media, MediaFallback } from "@/components/ui/media";
+import { Media, MediaImage, MediaFallback } from "@/components/ui/media";
 import BaseMap from "@/components/map/BaseMap";
 import { jobsToGeoJSON } from "@/lib/jobsToGeoJSON";
 import ShareJob from "@/components/modals/ShareJob";
 import ApplyJob from "@/components/modals/ApplyJob";
-import { useJob } from "@/features/jobs/hooks";
+import { getJobById } from "@/features/jobs/api";
+import type { JobWithRelations } from "@/types/job";
 import { format } from "date-fns";
 
 export default function JobPage() {
   const [applyOpen, setApplyOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [job, setJob] = useState<JobWithRelations | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
-  const { jobId } = useParams<{ jobId: string }>();
-  const { job, isLoading } = useJob(jobId || "");
-
-  const mapData = useMemo(() => {
-    if (
-      !job ||
-      !job.location ||
-      typeof job.location.longitude !== "number" ||
-      typeof job.location.latitude !== "number"
-    )
-      return null;
-
-    return jobsToGeoJSON([job]);
-  }, [job]);
+  const { jobId } = useParams();
 
   useEffect(() => {
-    if (!isLoading) {
-      setInitialLoad(false);
-    }
-  }, [isLoading]);
+    const fetchJob = async () => {
+      if (!jobId) return;
+      setIsLoading(true);
+      try {
+        const data = await getJobById(jobId);
+        setJob(data);
+      } catch {
+        setJob(null);
+      } finally {
+        setIsLoading(false);
+        setInitialLoad(false);
+      }
+    };
+    fetchJob();
+  }, [jobId]);
+
+  const mapData = useMemo(() => {
+    if (!job ||
+      !job.location ||
+      typeof job.location.longitude !== "number" ||
+      typeof job.location.latitude !== "number")
+      return null;
+    return jobsToGeoJSON([job]);
+  }, [job]);
 
   if (isLoading || initialLoad) {
     return (
@@ -59,10 +69,16 @@ export default function JobPage() {
         <header className="flex flex-row gap-2.5">
           <Media className="hidden size-24 rounded-3xl md:block">
             <Heart
-              className={`absolute top-2.5 right-2.5 cursor-pointer transition ${job.isFavorite ? "fill-red-500 text-red-500" : "fill-neutral-400 text-neutral-400"
-                }`}
+              className={`absolute top-2.5 right-2.5 cursor-pointer transition ${job.isFavorite ? "fill-red-500 text-red-500" : "fill-neutral-400 text-neutral-400"}`}
             />
-            <MediaFallback className="bg-neutral-300" />
+            {job.imageUrl ? (
+              <MediaImage
+                src={job.imageUrl}
+                alt={`${job.title} vessel`}
+              />
+            ) : (
+              <MediaFallback className="bg-neutral-300" />
+            )}
           </Media>
 
           <div data-slot="job-summary" className="flex flex-col justify-center gap-0.5">
@@ -74,19 +90,16 @@ export default function JobPage() {
                 <Clock className="text-muted-foreground size-5" />
                 {job.type}
               </dd>
-
               <dt className="sr-only">Posted</dt>
               <dd>
                 <CalendarDays className="text-muted-foreground size-5" />
                 {job.date ? format(new Date(job.date), "MMM d, yyyy") : "Date not set"}
               </dd>
-
               <dt className="sr-only">Vessel</dt>
               <dd>
                 <Ship className="text-muted-foreground size-5" />
                 {job.vessel}
               </dd>
-
               <dt className="sr-only">Location</dt>
               <dd>
                 <MapPin className="text-muted-foreground size-5" />

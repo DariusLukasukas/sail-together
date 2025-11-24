@@ -1,7 +1,7 @@
 import type { JobWithRelations } from "@/types/job";
 import { useJobStore } from "@/store/useJobStore";
 import { Link } from "react-router-dom";
-import { Media, MediaFallback } from "./ui/media";
+import { Media, MediaImage, MediaFallback } from "./ui/media";
 import { CalendarDays, Clock, Heart, MapPin, Ship } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -44,7 +44,15 @@ export default function JobsSidebar({ jobs, onToggleFavorite }: JobsSidebarProps
                         : "fill-neutral-400 text-neutral-400"
                     )}
                   />
-                  <MediaFallback className="bg-neutral-300" />
+                  {job.imageUrl ? (
+                    <MediaImage
+                      src={job.imageUrl}
+                      alt={`${job.title} vessel`}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <MediaFallback className="bg-neutral-300" />
+                  )}
                 </Media>
 
                 <article className="min-w-0 space-y-1">

@@ -16,6 +16,7 @@ export interface JobAttributes {
   title: string;
   type: string;
   vessel: string;
+  imageUrl?: string;
 }
 
 export class Job extends Parse.Object<JobAttributes> {
@@ -79,6 +80,13 @@ export class Job extends Parse.Object<JobAttributes> {
   }
   set vessel(value: string) {
     super.set("vessel", value);
+  }
+
+  get imageUrl(): string | undefined {
+    return super.get("imageUrl");
+  }
+  set imageUrl(value: string | undefined) {
+    super.set("imageUrl", value);
   }
 }
 

@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, Outlet } from "react-router-dom";
 import Home from "@/pages/Home";
 import Events from "@/pages/Events";
 import Profile from "@/pages/Profile";
@@ -6,18 +6,19 @@ import Explore from "@/pages/Explore";
 import NotFound from "@/pages/NotFound";
 import JobPage from "@/pages/JobPage";
 import RootLayout from "@/layouts/RootLayout";
-import WizardLayout from "@/layouts/WizardLayout";
-import AddListingWizard from "@/pages/add-listing/AddListingWizard";
 import SignUpPage from "@/pages/auth/SignUp";
 import LoginPage from "@/pages/auth/Login";
 import GuestRoute from "@/components/GuestRoute";
 import AuthLayout from "@/layouts/AuthLayout";
+import AddJob from "./components/modals/AddJob";
 
 function App() {
   return (
     <Routes>
       <Route element={<RootLayout />}>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home />}>
+          <Route path="add-listing" element={<AddJob />} />
+        </Route>
         <Route path="/jobs/:jobId" element={<JobPage />} />
         <Route path="/events" element={<Events />} />
         <Route path="/explore" element={<Explore />} />
@@ -41,13 +42,6 @@ function App() {
             </GuestRoute>
           }
         />
-      </Route>
-
-      <Route element={<WizardLayout />}>
-        <Route path="/add-listing">
-          <Route index element={<Navigate to="1" replace />} />
-          <Route path=":step" element={<AddListingWizard />} />
-        </Route>
       </Route>
 
       <Route path="*" element={<NotFound />} />

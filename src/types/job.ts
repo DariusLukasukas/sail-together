@@ -13,7 +13,8 @@ export interface Job {
   isFavorite?: boolean;
   locationId?: string; // Foreign key to Location table
   createdById?: string; // Foreign key to User table (optional)
-  description: string; // Moved from JobMeta
+  description?: string; // Moved from JobMeta
+  imageUrl?: string;
   
   createdAt?: Date;
   updatedAt?: Date;

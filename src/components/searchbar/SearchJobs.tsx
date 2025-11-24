@@ -33,7 +33,7 @@ const LOCATIONS: SuggestedLocation[] = [
 ];
 
 const JOB_TYPE_OPTIONS: JobType[] = [
-  { id: "steeward", label: "Steeward/Stewardess", className: "bg-purple-100" },
+  { id: "steward", label: "Steward/Stewardess", className: "bg-purple-100" },
   { id: "deckhand", label: "Deckhand", className: "bg-green-100" },
   { id: "first-mate", label: "First Mate", className: "bg-yellow-100" },
   { id: "captain", label: "Captain", className: "bg-orange-100" },
@@ -51,16 +51,15 @@ type Step = (typeof STEPS)[number];
 type State = {
   isOpen: boolean;
   stepIndex: number;
-  name: string | null;
+  location: string | null;
   position: string | null;
   availability?: DateRange | undefined;
 };
 
-export type Filters = {
-  name?: string | null;
+export type SearchFilters = {
+  location?: string | null;
   position?: string | null;
   availability?: DateRange | undefined;
-  activeTab?: string;
 };
 
 type Action =
@@ -70,7 +69,8 @@ type Action =
   | { type: "NEXT_STEP" }
   | { type: "SET_LOCATION"; value: string | null }
   | { type: "SET_POSITION"; value: string | null }
-  | { type: "SET_AVAILABILITY"; value: DateRange | undefined };
+  | { type: "SET_AVAILABILITY"; value: DateRange | undefined }
+  | { type: "CLEAR_FILTERS" };
 
 function reducer(state: State, action: Action) {
   switch (action.type) {
@@ -86,11 +86,13 @@ function reducer(state: State, action: Action) {
     case "NEXT_STEP":
       return { ...state, stepIndex: Math.min(state.stepIndex + 1, STEPS.length - 1) };
     case "SET_LOCATION":
-      return { ...state, name: action.value };
+      return { ...state, location: action.value };
     case "SET_POSITION":
       return { ...state, position: action.value };
     case "SET_AVAILABILITY":
       return { ...state, availability: action.value };
+    case "CLEAR_FILTERS":
+      return { ...state, location: null, position: null, availability: undefined };
     default:
       return state;
   }
@@ -105,11 +107,15 @@ function labelForRange(r?: DateRange) {
     : `${format(r.from, "d MMM")}–${format(r.to, "d MMM")}`;
 }
 
-export default function SearchJobs() {
+interface SearchJobsProps {
+  onFiltersChange?: (filters: SearchFilters) => void;
+}
+
+export default function SearchJobs({ onFiltersChange }: SearchJobsProps) {
   const [state, dispatch] = useReducer(reducer, {
     isOpen: false,
     stepIndex: 0,
-    name: null,
+    location: null,
     position: null,
     availability: undefined,
   });
@@ -123,9 +129,9 @@ export default function SearchJobs() {
   const tabLabel = (step: Step) => {
     switch (step.label) {
       case "Where":
-        return state.name ?? "Where";
+        return state.location ?? "Where";
       case "What":
-        return JOB_TYPE_OPTIONS.find((type) => type.label === state.position)?.label ?? "What";
+        return state.position ?? "What";
       case "When":
         return labelForRange(state.availability) ?? "When";
       default:
@@ -142,7 +148,31 @@ export default function SearchJobs() {
     return () => window.removeEventListener("keydown", onKey);
   }, [state.isOpen]);
 
-  const canSearch = !!state.name && !!state.position && !!state.availability?.from;
+  const canSearch = !!state.location || !!state.position || !!state.availability?.from;
+
+  const handleSearch = () => {
+    if (onFiltersChange) {
+      onFiltersChange({
+        location: state.location,
+        position: state.position,
+        availability: state.availability,
+      });
+    }
+    dispatch({ type: "CLOSE" });
+  };
+
+  const handleClearFilters = () => {
+    dispatch({ type: "CLEAR_FILTERS" });
+    if (onFiltersChange) {
+      onFiltersChange({
+        location: null,
+        position: null,
+        availability: undefined,
+      });
+    }
+  };
+
+  const hasActiveFilters = !!state.location || !!state.position || !!state.availability?.from;
 
   return (
     <div
@@ -183,12 +213,21 @@ export default function SearchJobs() {
 
         <button
           disabled={!canSearch}
-          onClick={() => dispatch({ type: "CLOSE" })}
+          onClick={handleSearch}
           className="rounded-full bg-blue-500 px-3 py-1.5 font-medium text-white disabled:pointer-events-none disabled:opacity-50"
         >
           Search
         </button>
       </div>
+
+      {hasActiveFilters && !state.isOpen && (
+        <button
+          onClick={handleClearFilters}
+          className="mt-2 text-sm text-blue-600 hover:underline"
+        >
+          Clear filters
+        </button>
+      )}
 
       {state.isOpen && (
         <div
@@ -204,14 +243,18 @@ export default function SearchJobs() {
                   <p className="mb-2 text-xs font-medium">Suggested locations</p>
                   <div className="flex flex-col gap-0.5 py-1">
                     {LOCATIONS.map((loc) => {
+                      const isSelected = state.location === loc.name;
                       return (
                         <button
                           key={loc.name}
                           type="button"
                           tabIndex={0}
-                          className="hover:bg-secondary focus-visible:border-ring flex w-full flex-row gap-4 rounded-2xl p-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                          className={cn(
+                            "hover:bg-secondary focus-visible:border-ring flex w-full flex-row gap-4 rounded-2xl p-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                            isSelected && "bg-accent ring-2 ring-blue-500"
+                          )}
                           onClick={() => {
-                            const next = state.name === loc.name ? null : loc.name;
+                            const next = isSelected ? null : loc.name;
                             dispatch({ type: "SET_LOCATION", value: next });
                             if (next) dispatch({ type: "NEXT_STEP" });
                           }}
@@ -232,24 +275,30 @@ export default function SearchJobs() {
             {activeTab.label === "What" && (
               <div className="flex flex-col px-6">
                 <div className="flex flex-col gap-0.5 py-1">
-                  {JOB_TYPE_OPTIONS.map((type) => (
-                    <button
-                      key={type.label}
-                      type="button"
-                      tabIndex={0}
-                      className="hover:bg-secondary focus-visible:border-ring flex flex-row gap-4 rounded-2xl p-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                      onClick={() => {
-                        const next = state.position === type.label ? null : type.label;
-                        dispatch({ type: "SET_POSITION", value: next });
-                        if (next) dispatch({ type: "NEXT_STEP" });
-                      }}
-                    >
-                      <div className={cn("size-14 rounded-lg bg-orange-100", type.className)} />
-                      <div className="flex flex-col justify-center text-sm font-medium">
-                        <p>{type.label}</p>
-                      </div>
-                    </button>
-                  ))}
+                  {JOB_TYPE_OPTIONS.map((type) => {
+                    const isSelected = state.position === type.label;
+                    return (
+                      <button
+                        key={type.label}
+                        type="button"
+                        tabIndex={0}
+                        className={cn(
+                          "hover:bg-secondary focus-visible:border-ring flex flex-row gap-4 rounded-2xl p-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                          isSelected && "bg-accent ring-2 ring-blue-500"
+                        )}
+                        onClick={() => {
+                          const next = isSelected ? null : type.label;
+                          dispatch({ type: "SET_POSITION", value: next });
+                          if (next) dispatch({ type: "NEXT_STEP" });
+                        }}
+                      >
+                        <div className={cn("size-14 rounded-lg bg-orange-100", type.className)} />
+                        <div className="flex flex-col justify-center text-sm font-medium">
+                          <p>{type.label}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
