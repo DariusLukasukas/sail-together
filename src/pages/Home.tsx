@@ -1,29 +1,25 @@
-import { useEffect, useCallback } from "react";
+import { useCallback } from "react";
+import useSWR from "swr";
 import SearchJobs from "@/components/searchbar/SearchJobs";
 import JobsSidebar from "@/components/JobsSidebar";
-import { useJobs, useToggleFavorite } from "@/features/jobs/hooks";
 //import { jobsToGeoJSON } from "@/lib/jobsToGeoJSON";
 //import Map from "@/components/map/Map";
 import AddJobForm from "@/components/forms/AddJobForm";
+import { getJobs, toggleJobFavorite } from "@/features/jobs/api";
 
 export default function Home() {
-  const { jobs, fetchJobs, isLoading, error } = useJobs();
-  const { toggle } = useToggleFavorite();
-
-  useEffect(() => {
-    fetchJobs();
-  }, []);
+  const { data: jobs, isLoading, error, mutate } = useSWR("jobs", getJobs);
 
   const handleToggleFavorite = useCallback(
     async (jobId: string) => {
       try {
-        await toggle(jobId);
-        await fetchJobs();
+        await toggleJobFavorite(jobId);
+        mutate();
       } catch (err) {
         console.error("Failed to toggle favorite:", err);
       }
     },
-    [toggle, fetchJobs]
+    [mutate]
   );
 
   if (isLoading) {
@@ -48,7 +44,7 @@ export default function Home() {
 
       <div className="relative grid grid-cols-1 gap-6 md:grid-cols-2">
         <aside className="flex flex-col gap-4">
-          <JobsSidebar jobs={jobs} onToggleFavorite={handleToggleFavorite} />
+          <JobsSidebar jobs={jobs || []} onToggleFavorite={handleToggleFavorite} />
         </aside>
 
         <section>

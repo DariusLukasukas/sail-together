@@ -4,10 +4,9 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import MapWithGeocoder from "../map/MapWithGeocoder";
 import { useState } from "react";
-import { createJob, createLocation, createJobRequirement, createJobExperience, createJobQualification } from "@/features/jobs/api";
+import { createJob } from "@/features/jobs/api";
 import { Spinner } from "../ui/spinner";
-import type { JobType } from "@/types/job";
-import { getCurrentUser } from "@/lib/parse/auth";
+import { Job } from "@/db/types/Job";
 
 interface LocationData {
     name: string;
@@ -16,7 +15,11 @@ interface LocationData {
     latitude: number;
 }
 
-const JOB_TYPES: Array<{ id: JobType; label: string }> = [
+interface AddJobFormProps extends React.ComponentProps<"form"> {
+    onSuccess?: () => void;
+}
+
+const JOB_TYPES: Array<{ id: Job["type"]; label: string }> = [
     { id: "Permanent", label: "Permanent" },
     { id: "Contract", label: "Contract" },
     { id: "Seasonal", label: "Seasonal" },
@@ -41,12 +44,12 @@ const VESSEL_TYPES = [
     "Workboat/Commercial",
 ] as const;
 
-export default function AddJobForm({ className, ...props }: React.ComponentProps<"form">) {
+export default function AddJobForm({ className, onSuccess, ...props }: AddJobFormProps) {
     const [title, setTitle] = useState("");
     const [vessel, setVessel] = useState("");
     const [description, setDescription] = useState("");
     const [location, setLocation] = useState<LocationData | null>(null);
-    const [jobType, setJobType] = useState<JobType | null>(null);
+    const [jobType, setJobType] = useState<Job["type"] | null>(null);
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [requirements, setRequirements] = useState<string[]>([""]);
@@ -56,7 +59,6 @@ export default function AddJobForm({ className, ...props }: React.ComponentProps
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
-    // Validation
     const hasTitle = title.trim().length > 0;
     const hasVessel = vessel.trim().length > 0;
     const hasLocation = location !== null;
@@ -83,75 +85,65 @@ export default function AddJobForm({ className, ...props }: React.ComponentProps
         setter((prev) => prev.filter((_, i) => i !== index));
     };
 
+    const resetForm = () => {
+        setTitle("");
+        setVessel("");
+        setDescription("");
+        setLocation(null);
+        setJobType(null);
+        setStartDate("");
+        setEndDate("");
+        setRequirements([""]);
+        setExperience([""]);
+        setQualifications([""]);
+        setError("");
+        setSuccess("");
+    };
+
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
 
         if (!isFormValid || isSubmitting) return;
-
-        const currentUser = getCurrentUser();
-        if (!currentUser) {
-            setError("You must be logged in to create a job");
-            return;
-        }
 
         setError("");
         setSuccess("");
         setIsSubmitting(true);
 
         try {
-            // Create location first
             if (!location) {
                 throw new Error("Location is required");
             }
 
-            const locationId = await createLocation({
-                name: location.name,
-                address: location.address,
-                longitude: location.longitude,
-                latitude: location.latitude,
-            });
-
-            // Create job
             if (!jobType) {
                 throw new Error("Job type is required");
             }
 
-            const jobId = await createJob({
+            const filteredRequirements = requirements.filter((r) => r.trim());
+            const filteredExperience = experience.filter((e) => e.trim());
+            const filteredQualifications = qualifications.filter((q) => q.trim());
+
+            await createJob({
                 title: title.trim(),
                 type: jobType,
                 date: new Date(startDate),
                 vessel: vessel.trim(),
                 description: description.trim() || undefined,
-                locationId,
+                location,
                 isFavorite: false,
+                requirements: filteredRequirements.length > 0 ? filteredRequirements : undefined,
+                experiences: filteredExperience.length > 0 ? filteredExperience : undefined,
+                qualifications: filteredQualifications.length > 0 ? filteredQualifications : undefined,
             });
-
-            // Create requirements, experience, and qualifications
-            await Promise.all([
-                ...requirements
-                    .filter((r) => r.trim())
-                    .map((r, i) => createJobRequirement(jobId, r.trim(), i)),
-                ...experience
-                    .filter((e) => e.trim())
-                    .map((e, i) => createJobExperience(jobId, e.trim(), i)),
-                ...qualifications
-                    .filter((q) => q.trim())
-                    .map((q, i) => createJobQualification(jobId, q.trim(), i)),
-            ]);
 
             setSuccess("Job created successfully!");
 
-            // Reset form
-            setTitle("");
-            setVessel("");
-            setDescription("");
-            setLocation(null);
-            setJobType(null);
-            setStartDate("");
-            setEndDate("");
-            setRequirements([""]);
-            setExperience([""]);
-            setQualifications([""]);
+            if (onSuccess) {
+                onSuccess();
+            }
+
+            setTimeout(() => {
+                resetForm();
+            }, 1500);
         } catch (err: any) {
             const message = err instanceof Error ? err.message : "Failed to create job";
             setError(message);
@@ -385,20 +377,7 @@ export default function AddJobForm({ className, ...props }: React.ComponentProps
                     size={"lg"}
                     variant={"secondary"}
                     className="flex-1"
-                    onClick={() => {
-                        setTitle("");
-                        setVessel("");
-                        setDescription("");
-                        setLocation(null);
-                        setJobType(null);
-                        setStartDate("");
-                        setEndDate("");
-                        setRequirements([""]);
-                        setExperience([""]);
-                        setQualifications([""]);
-                        setError("");
-                        setSuccess("");
-                    }}
+                    onClick={resetForm}
                 >
                     Cancel
                 </Button>

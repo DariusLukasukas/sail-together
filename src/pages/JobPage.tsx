@@ -2,27 +2,28 @@ import { useState, useMemo, useEffect } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import { Heart, Clock, CalendarDays, Ship, MapPin } from "lucide-react";
 import { Container } from "@/components/ui/container";
-import { Media, MediaFallback } from "@/components/ui/media";
+import { Media, MediaFallback, MediaImage } from "@/components/ui/media";
 import BaseMap from "@/components/map/BaseMap";
 import { jobsToGeoJSON } from "@/lib/jobsToGeoJSON";
 import ShareJob from "@/components/modals/ShareJob";
 import ApplyJob from "@/components/modals/ApplyJob";
-import { useJob } from "@/features/jobs/hooks";
+import { getJobById } from "@/features/jobs/api";
 import { format } from "date-fns";
+import useSWR from "swr";
 
 export default function JobPage() {
   const [applyOpen, setApplyOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
   const { jobId } = useParams<{ jobId: string }>();
-  const { job, isLoading } = useJob(jobId || "");
+  const { data: job, isLoading } = useSWR(jobId ? `job-${jobId}` : null, () => getJobById(jobId!));
 
   const mapData = useMemo(() => {
     if (
       !job ||
-      !job.location ||
-      typeof job.location.longitude !== "number" ||
-      typeof job.location.latitude !== "number"
+      !job.locationId ||
+      typeof job.locationId.longitude !== "number" ||
+      typeof job.locationId.latitude !== "number"
     )
       return null;
 
@@ -62,7 +63,14 @@ export default function JobPage() {
               className={`absolute top-2.5 right-2.5 cursor-pointer transition ${job.isFavorite ? "fill-red-500 text-red-500" : "fill-neutral-400 text-neutral-400"
                 }`}
             />
-            <MediaFallback className="bg-neutral-300" />
+            {job.imageUrl ? (
+              <MediaImage
+                src={job.imageUrl}
+                alt={`${job.title} vessel`}
+              />
+            ) : (
+              <MediaFallback className="bg-neutral-300" />
+            )}
           </Media>
 
           <div data-slot="job-summary" className="flex flex-col justify-center gap-0.5">
@@ -90,7 +98,7 @@ export default function JobPage() {
               <dt className="sr-only">Location</dt>
               <dd>
                 <MapPin className="text-muted-foreground size-5" />
-                {job.location?.name ?? "Unknown location"}
+                {job.locationId?.name ?? "Unknown location"}
               </dd>
             </dl>
           </div>
@@ -110,8 +118,8 @@ export default function JobPage() {
           <h2 className="text-xl font-semibold">Requirements</h2>
           {job.requirements && job.requirements.length > 0 ? (
             <ul className="list-inside list-disc">
-              {job.requirements.map((req) => (
-                <li key={req.id}>{req.requirement}</li>
+              {job.requirements.map((req, index) => (
+                <li key={index}>{req}</li>
               ))}
             </ul>
           ) : (
@@ -121,10 +129,10 @@ export default function JobPage() {
 
         <section>
           <h2 className="text-xl font-semibold">Experience</h2>
-          {job.experience && job.experience.length > 0 ? (
+          {job.experiences && job.experiences.length > 0 ? (
             <ul className="list-inside list-disc">
-              {job.experience.map((exp) => (
-                <li key={exp.id}>{exp.experience}</li>
+              {job.experiences.map((exp, index) => (
+                <li key={index}>{exp}</li>
               ))}
             </ul>
           ) : (
@@ -136,8 +144,8 @@ export default function JobPage() {
           <h2 className="text-xl font-semibold">Essential Qualifications</h2>
           {job.qualifications && job.qualifications.length > 0 ? (
             <ul className="grid list-inside list-disc grid-cols-1 md:grid-cols-2">
-              {job.qualifications.map((qual) => (
-                <li key={qual.id}>{qual.qualification}</li>
+              {job.qualifications.map((qual, index) => (
+                <li key={index}>{qual}</li>
               ))}
             </ul>
           ) : (
@@ -159,9 +167,9 @@ export default function JobPage() {
               </div>
             )}
           </div>
-          <p>{job.location?.name ?? "Location not specified"}</p>
-          {job.location?.address && (
-            <p className="text-muted-foreground text-sm">{job.location.address}</p>
+          <p>{job.locationId?.name ?? "Location not specified"}</p>
+          {job.locationId?.address && (
+            <p className="text-muted-foreground text-sm">{job.locationId.address}</p>
           )}
         </section>
       </article>

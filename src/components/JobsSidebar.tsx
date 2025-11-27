@@ -1,13 +1,13 @@
-import type { JobWithRelations } from "@/types/job";
+import { type JobAttributes } from "@/db/types/Job";
 import { useJobStore } from "@/store/useJobStore";
 import { Link } from "react-router-dom";
-import { Media, MediaFallback } from "./ui/media";
+import { Media, MediaFallback, MediaImage } from "./ui/media";
 import { CalendarDays, Clock, Heart, MapPin, Ship } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
 interface JobsSidebarProps {
-  jobs: JobWithRelations[];
+  jobs: JobAttributes[];
   onToggleFavorite?: (jobId: string) => void;
 }
 
@@ -44,7 +44,14 @@ export default function JobsSidebar({ jobs, onToggleFavorite }: JobsSidebarProps
                         : "fill-neutral-400 text-neutral-400"
                     )}
                   />
-                  <MediaFallback className="bg-neutral-300" />
+                  {job.imageUrl ? (
+                    <MediaImage
+                      src={job.imageUrl}
+                      alt={`${job.title} vessel`}
+                    />
+                  ) : (
+                    <MediaFallback className="bg-neutral-300" />
+                  )}
                 </Media>
 
                 <article className="min-w-0 space-y-1">
@@ -81,7 +88,7 @@ export default function JobsSidebar({ jobs, onToggleFavorite }: JobsSidebarProps
                       <div className="flex min-w-0 items-center gap-1">
                         <dt className="sr-only">Location</dt>
                         <MapPin className="text-muted-foreground size-5 shrink-0" />
-                        <dd>{job.location.address}</dd>
+                        <dd>{job.locationId.address}</dd>
                       </div>
                     </div>
                   </dl>

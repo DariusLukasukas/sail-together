@@ -1,8 +1,8 @@
-import type { JobWithRelations } from "@/types/job";
+import type { JobWithRelations } from "@/features/jobs/api";
 import type { GenericFeature, GenericFeatureCollection } from "@/types/map";
 
 function jobToFeature(job: JobWithRelations): GenericFeature {
-  if (!job.location?.longitude || !job.location?.latitude) {
+  if (!job.locationId?.longitude || !job.locationId?.latitude) {
     throw new Error(`Job ${job.id} missing valid location coordinates`);
   }
 
@@ -10,7 +10,7 @@ function jobToFeature(job: JobWithRelations): GenericFeature {
     type: "Feature",
     geometry: {
       type: "Point",
-      coordinates: [job.location.longitude, job.location.latitude],
+      coordinates: [job.locationId.longitude, job.locationId.latitude],
     },
     properties: {
       id: job.id,
@@ -23,7 +23,7 @@ export function jobsToGeoJSON(jobs: JobWithRelations[]): GenericFeatureCollectio
   return {
     type: "FeatureCollection",
     features: jobs
-      .filter((job) => job.location?.longitude && job.location?.latitude)
+      .filter((job) => job.locationId?.longitude && job.locationId?.latitude)
       .map((job) => {
         try {
           return jobToFeature(job);
