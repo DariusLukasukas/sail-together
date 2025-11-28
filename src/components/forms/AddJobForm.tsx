@@ -138,7 +138,7 @@ export default function AddJobForm({ className, onSuccess, onCancel, ...props }:
                 description: description.trim() || undefined,
                 location,
                 isFavorite: false,
-                imageUrl: imageUrl ? URL.createObjectURL(imageUrl) : undefined,
+                imageUrl: imageUrl || undefined,
                 requirements: filteredRequirements.length > 0 ? filteredRequirements : undefined,
                 experiences: filteredExperience.length > 0 ? filteredExperience : undefined,
                 qualifications: filteredQualifications.length > 0 ? filteredQualifications : undefined,
@@ -150,9 +150,7 @@ export default function AddJobForm({ className, onSuccess, onCancel, ...props }:
                 onSuccess();
             }
 
-            setTimeout(() => {
-                resetForm();
-            }, 1500);
+            resetForm();
         } catch (err: any) {
             const message = err instanceof Error ? err.message : "Failed to create job";
             setError(message);

@@ -85,7 +85,7 @@ export async function createJob({
     date: Date;
     type: string;
     vessel: string;
-    imageUrl?: string;
+    imageUrl?: File | string;
     location: {
         name: string;
         address: string;
@@ -109,6 +109,17 @@ export async function createJob({
     locationObj.latitude = location.latitude;
     await locationObj.save();
 
+    let finalImageUrl: string | undefined;
+    if (imageUrl) {
+        if (imageUrl instanceof File) {
+            const parseFile = new Parse.File(imageUrl.name, imageUrl);
+            await parseFile.save();
+            finalImageUrl = parseFile.url();
+        } else {
+            finalImageUrl = imageUrl;
+        }
+    }
+
     const job = new Job();
     job.title = title;
     job.date = date;
@@ -118,7 +129,7 @@ export async function createJob({
     job.createdById = currentUser;
 
     if (description) job.description = description;
-    if (imageUrl) job.imageUrl = imageUrl;
+    if (finalImageUrl) job.imageUrl = finalImageUrl;
     if (isFavorite !== undefined) job.isFavorite = isFavorite;
 
     await job.save();
@@ -131,29 +142,29 @@ export async function createJob({
             requirementObj.order = index;
             return requirementObj;
         });
-            await Parse.Object.saveAll(requirementObjs);
+        await Parse.Object.saveAll(requirementObjs);
     }
 
     if (experiences && experiences.length > 0) {
-       const experienceObjs = experiences.map((exp, index) => {
+        const experienceObjs = experiences.map((exp, index) => {
             const experienceObj = new JobExperience();
             experienceObj.jobId = job;
-           experienceObj.experience = exp;
-           experienceObj.order = index;
+            experienceObj.experience = exp;
+            experienceObj.order = index;
             return experienceObj;
         });
-            await Parse.Object.saveAll(experienceObjs);
+        await Parse.Object.saveAll(experienceObjs);
     }
 
     if (qualifications && qualifications.length > 0) {
-       const qualificationObjs = qualifications.map((qual, index) => {
+        const qualificationObjs = qualifications.map((qual, index) => {
             const qualificationObj = new JobQualification();
             qualificationObj.jobId = job;
-           qualificationObj.qualification = qual;
-           qualificationObj.order = index;
+            qualificationObj.qualification = qual;
+            qualificationObj.order = index;
             return qualificationObj;
         });
-            await Parse.Object.saveAll(qualificationObjs);
+        await Parse.Object.saveAll(qualificationObjs);
     }
 
     return job as Job;
