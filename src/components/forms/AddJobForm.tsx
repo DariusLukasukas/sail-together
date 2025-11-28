@@ -17,6 +17,7 @@ interface LocationData {
 
 interface AddJobFormProps extends React.ComponentProps<"form"> {
     onSuccess?: () => void;
+    onCancel?: () => void;
 }
 
 const JOB_TYPES: Array<{ id: Job["type"]; label: string }> = [
@@ -44,7 +45,7 @@ const VESSEL_TYPES = [
     "Workboat/Commercial",
 ] as const;
 
-export default function AddJobForm({ className, onSuccess, ...props }: AddJobFormProps) {
+export default function AddJobForm({ className, onSuccess, onCancel, ...props }: AddJobFormProps) {
     const [title, setTitle] = useState("");
     const [vessel, setVessel] = useState("");
     const [description, setDescription] = useState("");
@@ -55,6 +56,7 @@ export default function AddJobForm({ className, onSuccess, ...props }: AddJobFor
     const [requirements, setRequirements] = useState<string[]>([""]);
     const [experience, setExperience] = useState<string[]>([""]);
     const [qualifications, setQualifications] = useState<string[]>([""]);
+    const [imageUrl, setImageUrl] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
@@ -96,8 +98,14 @@ export default function AddJobForm({ className, onSuccess, ...props }: AddJobFor
         setRequirements([""]);
         setExperience([""]);
         setQualifications([""]);
+        setImageUrl(null);
         setError("");
         setSuccess("");
+    };
+
+    const handleCancel = () => {
+        resetForm();
+        onCancel?.();
     };
 
     async function handleSubmit(e: React.FormEvent) {
@@ -130,6 +138,7 @@ export default function AddJobForm({ className, onSuccess, ...props }: AddJobFor
                 description: description.trim() || undefined,
                 location,
                 isFavorite: false,
+                imageUrl: imageUrl ? URL.createObjectURL(imageUrl) : undefined,
                 requirements: filteredRequirements.length > 0 ? filteredRequirements : undefined,
                 experiences: filteredExperience.length > 0 ? filteredExperience : undefined,
                 qualifications: filteredQualifications.length > 0 ? filteredQualifications : undefined,
@@ -240,9 +249,14 @@ export default function AddJobForm({ className, onSuccess, ...props }: AddJobFor
             </Field>
 
             <Field>
-                <FieldLabel htmlFor="place">Where will the crew join the vessel?</FieldLabel>
-                <FieldDescription>Add the marina, harbor, or meeting point on the map.</FieldDescription>
-                <MapWithGeocoder onLocationSelect={(loc) => setLocation(loc)} value={location} />
+                <FieldLabel htmlFor="place">Location</FieldLabel>
+                <FieldDescription>Select where crew will join the vessel.</FieldDescription>
+                <MapWithGeocoder
+                    onLocationSelect={(loc) => {
+                        setLocation({ name: loc.name, address: loc.address, longitude: loc.longitude, latitude: loc.latitude });
+                    }}
+                    value={location}
+                />
                 {!hasLocation && (
                     <FieldError errors={[{ message: "Please select a location on the map" }]} />
                 )}
@@ -351,6 +365,20 @@ export default function AddJobForm({ className, onSuccess, ...props }: AddJobFor
                 </Button>
             </Field>
 
+            <Field>
+                <FieldLabel htmlFor="image">Vessel Photo (Optional)</FieldLabel>
+                <Input
+                    id="image"
+                    type="file"
+                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                    className="border-2 border-dashed"
+                    onChange={(e) => setImageUrl(e.target.files?.[0] || null)}
+                />
+                {imageUrl && (
+                    <p className="text-sm text-muted-foreground">Selected: {imageUrl.name}</p>
+                )}
+            </Field>
+
             {error && (
                 <div
                     role="alert"
@@ -377,7 +405,7 @@ export default function AddJobForm({ className, onSuccess, ...props }: AddJobFor
                     size={"lg"}
                     variant={"secondary"}
                     className="flex-1"
-                    onClick={resetForm}
+                    onClick={handleCancel}
                 >
                     Cancel
                 </Button>

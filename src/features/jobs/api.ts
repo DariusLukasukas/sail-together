@@ -107,6 +107,7 @@ export async function createJob({
     locationObj.address = location.address;
     locationObj.longitude = location.longitude;
     locationObj.latitude = location.latitude;
+    await locationObj.save();
 
     const job = new Job();
     job.title = title;
@@ -120,35 +121,42 @@ export async function createJob({
     if (imageUrl) job.imageUrl = imageUrl;
     if (isFavorite !== undefined) job.isFavorite = isFavorite;
 
+    await job.save();
+
     if (requirements && requirements.length > 0) {
-        for (const req of requirements) {
+        const requirementObjs = requirements.map((req, index) => {
             const requirementObj = new JobRequirement();
             requirementObj.jobId = job;
             requirementObj.requirement = req;
-            await requirementObj.save();
-        }
+            requirementObj.order = index;
+            return requirementObj;
+        });
+            await Parse.Object.saveAll(requirementObjs);
     }
 
     if (experiences && experiences.length > 0) {
-        for (const exp of experiences) {
+       const experienceObjs = experiences.map((exp, index) => {
             const experienceObj = new JobExperience();
             experienceObj.jobId = job;
-            experienceObj.experience = exp;
-            await experienceObj.save();
-        }
-    }
-    
-    if (qualifications && qualifications.length > 0) {
-        for (const qual of qualifications) {
-            const qualificationObj = new JobQualification();
-            qualificationObj.jobId = job;
-            qualificationObj.qualification = qual;
-            await qualificationObj.save();
-        }
+           experienceObj.experience = exp;
+           experienceObj.order = index;
+            return experienceObj;
+        });
+            await Parse.Object.saveAll(experienceObjs);
     }
 
-    const saved = await job.save();
-    return saved as Job;
+    if (qualifications && qualifications.length > 0) {
+       const qualificationObjs = qualifications.map((qual, index) => {
+            const qualificationObj = new JobQualification();
+            qualificationObj.jobId = job;
+           qualificationObj.qualification = qual;
+           qualificationObj.order = index;
+            return qualificationObj;
+        });
+            await Parse.Object.saveAll(qualificationObjs);
+    }
+
+    return job as Job;
 }
 
 export async function toggleJobFavorite(jobId: string): Promise<Job> {

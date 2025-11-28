@@ -2,9 +2,8 @@ import { useCallback } from "react";
 import useSWR from "swr";
 import SearchJobs from "@/components/searchbar/SearchJobs";
 import JobsSidebar from "@/components/JobsSidebar";
-//import { jobsToGeoJSON } from "@/lib/jobsToGeoJSON";
-//import Map from "@/components/map/Map";
-import AddJobForm from "@/components/forms/AddJobForm";
+import { jobsToGeoJSON } from "@/lib/jobsToGeoJSON";
+import Map from "@/components/map/Map";
 import { getJobs, toggleJobFavorite } from "@/features/jobs/api";
 
 export default function Home() {
@@ -49,13 +48,7 @@ export default function Home() {
 
         <section>
           <div className="sticky top-14 h-[calc(100dvh-56px-16px-48px-16px)] py-6">
-            {/* <Map jobs={jobsGeoJSON} /> */}
-
-            {/* TEMPORARY DEV PANEL */}
-            <div className="rounded-xl border-3 border-orange-500 p-4">
-              <p className="text-xl font-bold text-orange-500 uppercase">Dev Panel</p>
-              <AddJobForm />
-            </div>
+            <Map jobs={jobsToGeoJSON(jobs || [])} />
           </div>
         </section>
       </div>

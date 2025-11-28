@@ -1,5 +1,5 @@
 import type { EventAttributes, EventWithRelations } from "@/db/types/Event";
-import type { JobWithRelations } from "@/types/job";
+import type { JobWithRelations } from "@/features/jobs/api";
 import type { CategorySlug } from "@/types/category";
 import { CATEGORIES } from "@/data/categories";
 import { getJobById } from "@/features/jobs/api";
@@ -61,9 +61,9 @@ export async function getJobWithRelations(
   job: JobWithRelations
 ): Promise<JobWithRelations> {
   if (
-    job.location?.id &&
-    typeof job.location.longitude === "number" &&
-    typeof job.location.latitude === "number"
+    job.locationId?.id &&
+    typeof job.locationId.longitude === "number" &&
+    typeof job.locationId.latitude === "number"
   ) {
     return job;
   }

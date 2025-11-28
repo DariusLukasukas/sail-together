@@ -61,7 +61,7 @@ export default function MapWithGeocoder({ onLocationSelect, value }: MapWithGeoc
 
   return (
     <div className="relative h-96 w-full overflow-hidden rounded-2xl">
-      <div className="absolute top-4 right-4 left-4 z-10">
+      <div className="top-4 right-4 left-4 z-10">
         <SearchBox
           accessToken={MAPBOX_API_KEY}
           map={mapRef.current ?? undefined}
