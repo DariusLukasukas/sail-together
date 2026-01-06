@@ -120,3 +120,52 @@ export async function deletePost(postId: string): Promise<void> {
   const obj = await q.get(postId);
   await obj.destroy();
 }
+
+export async function togglePostLike(postId: string): Promise<{
+  liked: boolean;
+  likeCount: number;
+}> {
+  const currentUser = Parse.User.current();
+  if (!currentUser) {
+    throw new Error("Not authenticated");
+  }
+
+  const postPtr = new Parse.Object("Post");
+  postPtr.id = postId;
+
+  const likeQuery = new Parse.Query("PostLike");
+  likeQuery.equalTo("postId", postPtr);
+  likeQuery.equalTo("userId", currentUser);
+  likeQuery.limit(1);
+
+  const existing = await likeQuery.first();
+
+  const postToUpdate = new Parse.Object("Post");
+  postToUpdate.id = postId;
+
+  if (existing) {
+    // Unlike
+    await existing.destroy();
+    postToUpdate.increment("likeCount", -1);
+
+    const savedPost = await postToUpdate.save();
+    return {
+      liked: false,
+      likeCount: savedPost.get("likeCount") ?? 0,
+    };
+  } else {
+    // Like
+    const newLike = new Parse.Object("PostLike");
+    newLike.set("postId", postPtr);
+    newLike.set("userId", currentUser);
+    await newLike.save();
+
+    postToUpdate.increment("likeCount", 1);
+    const savedPost = await postToUpdate.save();
+
+    return {
+      liked: true,
+      likeCount: savedPost.get("likeCount") ?? 0,
+    };
+  }
+}
