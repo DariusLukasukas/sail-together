@@ -4,7 +4,7 @@ import { signUp } from "@/lib/parse/auth";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Field, FieldLabel, FieldDescription, FieldError } from "../../ui/field";
+import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 
 const MIN_PASSWORD_LENGTH = 8;

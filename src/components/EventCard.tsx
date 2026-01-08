@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import type { EventAttributes } from "@/db/types";
 import CardMedia from "./CardMedia";
+import { useNavigate } from "react-router-dom";
 
 function formatEventDate(date: Date | string | undefined): string {
   if (!date) return "Date TBD";
@@ -27,13 +28,21 @@ export default function EventCard({
   event: EventAttributes;
   onToggleFavorite?: (id: string) => void;
 }) {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    navigate(`/events/${event.id}`);
+  };
+
   return (
     <div
       aria-label="event-card"
-      className={cn("flex aspect-square w-full flex-col gap-2", className)}
+      className={cn("flex aspect-square w-full flex-col gap-2 cursor-pointer", className)}
+      onClick={handleCardClick}
       {...props}
     >
       <CardMedia
+        src={event.imageUrl}
         isFavorite={event.isFavorite ?? false}
         priceKind={event.priceKind}
         onFavoriteClick={(e) => {

@@ -39,7 +39,17 @@ const INITIAL_FORM_STATE: FormState = {
   imageFile: null,
 };
 
-export default function AddEventForm({ className, ...props }: React.ComponentProps<"form">) {
+interface AddEventFormProps extends Omit<React.ComponentProps<"form">, "onSubmit"> {
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}
+
+export default function AddEventForm({ 
+  className, 
+  onSuccess, 
+  onCancel,
+  ...props 
+}: AddEventFormProps) {
   const [form, setForm] = useState<FormState>(INITIAL_FORM_STATE);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,11 +114,13 @@ export default function AddEventForm({ className, ...props }: React.ComponentPro
         priceKind: form.priceKind!,
         priceAmount: form.priceKind === "paid" ? form.priceAmount : undefined,
         priceCurrency: form.priceKind === "paid" ? form.priceCurrency : undefined,
+        imageFile: form.imageFile || undefined,
       });
 
       // Invalidate and refetch events cache
       await mutate("events");
       resetForm();
+      onSuccess?.();
     } catch (err: any) {
       setError(err instanceof Error ? err.message : "Failed to create event");
       console.error("Error creating event:", err);
@@ -240,7 +252,19 @@ export default function AddEventForm({ className, ...props }: React.ComponentPro
       )}
 
       <div className="flex gap-2">
-        <Button type="button" size="lg" className="flex-1" variant="secondary" onClick={resetForm}>
+        <Button 
+          type="button" 
+          size="lg" 
+          className="flex-1" 
+          variant="secondary" 
+          onClick={() => {
+            if (onCancel) {
+              onCancel();
+            } else {
+              resetForm();
+            }
+          }}
+        >
           Cancel
         </Button>
 
