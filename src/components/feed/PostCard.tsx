@@ -190,14 +190,15 @@ function Header(props: {
         <DropdownMenuContent align="end">
           <DropdownMenuItem>Copy link</DropdownMenuItem>
           <DropdownMenuItem
-            onSelect={(e) => {
-              e.preventDefault();
-              onDelete();
-            }}
-            disabled={isDeleting}
-          >
-            Delete post
-          </DropdownMenuItem>
+          className="text-red-500 focus:bg-red-50 focus:text-red-600"
+          onSelect={(e) => {
+            e.preventDefault();
+            onDelete();
+          }}
+          disabled={isDeleting}
+        >
+          Delete post
+        </DropdownMenuItem>
 
         </DropdownMenuContent>
       </DropdownMenu>
