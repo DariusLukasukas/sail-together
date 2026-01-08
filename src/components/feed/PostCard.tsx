@@ -8,6 +8,8 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
+import { togglePostLike } from "@/features/posts/api";
+import { Heart } from "lucide-react";
 
 /** Props to PostCard. */
 type PostCardProps = { post: PostWithRelations };
@@ -49,6 +51,7 @@ function timeAgo(iso: string) {
 
 export function PostCard({ post }: PostCardProps) {
   const {
+    id,
     user,
     location,
     mediaUrl,
@@ -59,17 +62,32 @@ export function PostCard({ post }: PostCardProps) {
     commentCount,
   } = post;
 
-  const [liked, setLiked] = useState(hasLiked);
-  const [likeCount, setLikeCount] = useState(initialLikes);
 
-  // Updating UI likes live, as the user interacts.
-  function toggleLike() {
-    if (liked) {
-      setLiked(false);
-      setLikeCount((c) => c - 1);
-    } else {
-      setLiked(true);
-      setLikeCount((c) => c + 1);
+  const [liked, setLiked] = useState(!!hasLiked);
+  const [likeCount, setLikeCount] = useState(initialLikes ?? 0);
+  const [isSavingLike, setIsSavingLike] = useState(false);
+
+  async function toggleLike() {
+    if (isSavingLike) return;
+
+    const prevLiked = liked;
+    const prevCount = likeCount;
+
+    const nextLiked = !prevLiked;
+    setLiked(nextLiked);
+    setLikeCount((c) => c + (nextLiked ? 1 : -1));
+
+    setIsSavingLike(true);
+    try {
+      const res = await togglePostLike(id);
+      setLiked(res.liked);
+      setLikeCount(res.likeCount);
+    } catch (err) {
+      setLiked(prevLiked);
+      setLikeCount(prevCount);
+      console.error("Failed to toggle like:", err);
+    } finally {
+      setIsSavingLike(false);
     }
   }
 
@@ -100,10 +118,11 @@ export function PostCard({ post }: PostCardProps) {
       )}
 
       <Actions
-        liked={liked ?? false}
-        likeCount={likeCount}
-        commentCount={commentCount}
-        onToggleLike={toggleLike}
+      liked={liked ?? false}
+      likeCount={likeCount}
+      commentCount={commentCount}
+      onToggleLike={toggleLike}
+      disabled={isSavingLike}
       />
     </article>
   );
@@ -159,19 +178,31 @@ function Actions(props: {
   likeCount: number;
   commentCount: number;
   onToggleLike: () => void;
+  disabled?: boolean;
 }) {
-  const { liked, likeCount, commentCount, onToggleLike } = props;
-
+  const { liked, likeCount, commentCount, onToggleLike, disabled } = props;
+  const heartClass = liked ? "h-5 w-5 fill-red-500 text-red-500" : "h-5 w-5 text-gray-600";
+  
   return (
     <div className="mt-3 flex items-center gap-3 px-2">
-      <Button variant="ghost" aria-pressed={liked} onClick={onToggleLike}>
-        {liked ? "♥︎" : "♡"} Like
+      <Button
+        variant="ghost"
+        onClick={onToggleLike}
+        disabled={disabled}
+        aria-pressed={liked}
+        className="flex items-center gap-1"
+      >
+        <Heart className={heartClass} />
+        <span>Like</span>
       </Button>
+  
       <Button variant="ghost">Comment</Button>
       <Button variant="ghost">↗ Share</Button>
+  
       <span className="ml-auto text-sm text-gray-500">
         {likeCount} likes · {commentCount} comments
       </span>
     </div>
   );
+
 }
