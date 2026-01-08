@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
 import { togglePostLike } from "@/features/posts/api";
+import { Heart } from "lucide-react";
 
 /** Props to PostCard. */
 type PostCardProps = { post: PostWithRelations };
@@ -180,7 +181,8 @@ function Actions(props: {
   disabled?: boolean;
 }) {
   const { liked, likeCount, commentCount, onToggleLike, disabled } = props;
-
+  const heartClass = liked ? "h-5 w-5 fill-red-500 text-red-500" : "h-5 w-5 text-gray-600";
+  
   return (
     <div className="mt-3 flex items-center gap-3 px-2">
       <Button
@@ -188,14 +190,19 @@ function Actions(props: {
         onClick={onToggleLike}
         disabled={disabled}
         aria-pressed={liked}
+        className="flex items-center gap-1"
       >
-        {liked ? "♥︎" : "♡"} Like ({likeCount})
+        <Heart className={heartClass} />
+        <span>Like</span>
       </Button>
+  
       <Button variant="ghost">Comment</Button>
       <Button variant="ghost">↗ Share</Button>
+  
       <span className="ml-auto text-sm text-gray-500">
         {likeCount} likes · {commentCount} comments
       </span>
     </div>
   );
+
 }

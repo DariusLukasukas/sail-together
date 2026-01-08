@@ -15,7 +15,7 @@ export async function getPostsWithRelations(): Promise<PostWithRelations[]> {
 
     likeCount: p.likeCount ?? 0,
     commentCount: p.commentCount ?? 0,
-    hasLiked: false,
+    hasLiked: p.hasLiked ?? false,
 
     user: {
       id: p.userId ?? "",

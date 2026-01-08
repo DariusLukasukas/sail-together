@@ -1,5 +1,7 @@
 // all Parse calls related to posts
 import Parse from "@/lib/parse/client";
+import type { ParseObject, Attributes } from "parse";
+
 
 export type Post = {
   id: string;
@@ -14,6 +16,7 @@ export type Post = {
   likeCount: number;
   commentCount: number;
   createdAt: Date;
+  hasLiked: boolean;
 };
 
 export type CreatePostInput = {
@@ -23,12 +26,17 @@ export type CreatePostInput = {
   imageFile?: File | null;  // Upload from disk
 };
 
-function mapPost(p: Parse.Object): Post {
+function mapPost(p: ParseObject<Attributes>): Post {
   const user = p.get("userId") as Parse.User | undefined;
   const location = p.get("locationId") as Parse.Object | undefined;
 
+  const id = p.id;
+  if (!id) {
+    throw new Error("Post is missing id (objectId)");
+  }
+
   return {
-    id: p.id,
+    id,
     userId: user?.id ?? null,
     userName: (user && user.get("username")) ?? null,
     userAvatarUrl: (user && user.get("avatarUrl")) ?? null,
@@ -40,6 +48,7 @@ function mapPost(p: Parse.Object): Post {
     likeCount: p.get("likeCount") ?? 0,
     commentCount: p.get("commentCount") ?? 0,
     createdAt: p.createdAt ?? new Date(),
+    hasLiked: false,
   };
 }
 
@@ -55,7 +64,35 @@ export async function getPosts(limit = 20): Promise<Post[]> {
 
   try {
     const results = await query.find();
-    return results.map(mapPost);
+    const posts = results.map(mapPost);
+
+    const currentUser = Parse.User.current();
+    if (!currentUser) {
+      // Ikke logged in -> hasLiked forbliver default (false)
+      return posts;
+    }
+
+    // Lav pointers til de posts vi lige hentede (til containedIn)
+    const postPtrs = posts.map((p) => {
+      const ptr = new Parse.Object("Post");
+      ptr.id = p.id;
+      return ptr;
+    });
+
+    const likeQuery = new Parse.Query("PostLike");
+    likeQuery.equalTo("userId", currentUser);
+    likeQuery.containedIn("postId", postPtrs);
+    likeQuery.limit(1000);
+
+    const likes = await likeQuery.find();
+    const likedPostIds = new Set(
+      likes.map((l) => (l.get("postId") as Parse.Object).id)
+    );
+
+    return posts.map((p) => ({
+      ...p,
+      hasLiked: likedPostIds.has(p.id),
+    }));
   } catch (err: any) {
     console.error("Failed to fetch posts:", err.message);
     throw err;
