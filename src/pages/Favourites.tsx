@@ -32,12 +32,7 @@ export default function Favourites() {
           data.map((event) => (
             <EventCard key={event.id} event={event} onToggleFavorite={toggleFavorite} />
           ))
-        ) : (
-          <div className="text-muted-foreground col-span-full py-12 text-center">
-            <p className="text-lg">No favourite events yet</p>
-            <p className="mt-2 text-sm">Start favouriting events to see them here!</p>
-          </div>
-        )}
+        ): null}
       </div>
     </main>
   );

@@ -22,8 +22,7 @@ function formatJobDate(date: Date | string | undefined): string {
 export default function Listings() {
     const user = getCurrentUser();
     const { data, isLoading, error } = useSWR<JobAttributes[]>("jobs", getJobs, {
-        revalidateIfStale: true,
-        dedupingInterval: 10 * 60 * 1000,
+        dedupingInterval: 10 * 60 * 1000, // 10 minutes
     });
 
     const toggleFavorite = useToggleJobFavorite("jobs");
@@ -84,12 +83,7 @@ export default function Listings() {
                             </Link>
                         );
                     })
-                ) : (
-                    <div className="text-muted-foreground col-span-full py-12 text-center">
-                        <p className="text-lg">No listings yet</p>
-                        <p className="mt-2 text-sm">Start adding listings to see them here!</p>
-                    </div>
-                )}
+                ) : null}
             </div>
         </main>
     );

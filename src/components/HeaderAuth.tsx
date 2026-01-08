@@ -1,6 +1,5 @@
-import avatar from "@/assets/avatar.png";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AvatarUser } from "@/components/ui/avatar-user";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { getCurrentUser, logOut } from "@/lib/parse/auth";
@@ -14,7 +13,11 @@ import {
 import { Briefcase, CircleUserRound, Heart, Map, Menu, Settings, LibraryBig } from "lucide-react";
 
 export default function HeaderAuth() {
-  const [user, setUser] = useState<Parse.User | null>(null);
+  const [user, setUser] = useState<Parse.User | null>(() => {
+    const current = getCurrentUser();
+    return current ? (current as unknown as Parse.User) : null;
+  });
+  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,10 +40,7 @@ export default function HeaderAuth() {
           </NavLink>
 
           <NavLink to={"/profile"}>
-            <Avatar className="size-9 select-none">
-              <AvatarImage src={avatar} alt="profile avatar" />
-              <AvatarFallback>CL</AvatarFallback>
-            </Avatar>
+            <AvatarUser user={user} className="size-9" />
           </NavLink>
 
           <DropdownMenu>
