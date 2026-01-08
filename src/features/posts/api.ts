@@ -153,6 +153,11 @@ export async function createPost({
 }
 
 export async function deletePost(postId: string): Promise<void> {
+  const currentUser = Parse.User.current();
+  if (!currentUser) {
+    throw new Error("Not authenticated");
+  }
+
   const q = new Parse.Query("Post");
   const obj = await q.get(postId);
   await obj.destroy();

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { PostWithRelations } from "@/types/post";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -7,12 +8,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
-import { togglePostLike } from "@/features/posts/api";
 import { Heart } from "lucide-react";
+import { togglePostLike, deletePost } from "@/features/posts/api";
 
 /** Props to PostCard. */
-type PostCardProps = { post: PostWithRelations };
+type PostCardProps = { post: PostWithRelations; onDeleted?: (id: string) => void };
 
 /** Returnerer up to two initials. */
 function getUserName(name: string) {
@@ -49,7 +49,7 @@ function timeAgo(iso: string) {
   return `${days} day${days > 1 ? "s" : ""} ago`;
 }
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, onDeleted }: PostCardProps) {
   const {
     id,
     user,
@@ -91,14 +91,36 @@ export function PostCard({ post }: PostCardProps) {
     }
   }
 
+  const [isDeleting, setIsDeleting] = useState(false);
+
+async function handleDelete() {
+  if (isDeleting) return;
+
+  const ok = window.confirm("Are you sure you want to delete this post?");
+  if (!ok) return;
+
+  setIsDeleting(true);
+  try {
+    await deletePost(id);
+    onDeleted?.(id);
+  } catch (err) {
+    console.error("Failed to delete post:", err);
+    alert("Could not delete post (are you logged in?)");
+  } finally {
+    setIsDeleting(false);
+  }
+}
+
   return (
     <article className="rounded-3xl bg-white/70 p-3 shadow-sm ring-1 ring-black/5 backdrop-blur">
-      <Header
-        name={user.name}
-        avatarUrl={user.avatarUrl}
-        locationName={location?.name}
-        createdAt={String(createdAt)}
-      />
+    <Header
+      name={user.name}
+      avatarUrl={user.avatarUrl}
+      locationName={location?.name}
+      createdAt={String(createdAt)}
+      onDelete={handleDelete}
+      isDeleting={isDeleting}
+    />
 
 <figure className="mt-2 overflow-hidden rounded-2xl">
         <div className="relative w-full aspect-square">
@@ -134,8 +156,10 @@ function Header(props: {
   avatarUrl: string;
   locationName?: string;
   createdAt: string;
+  onDelete: () => void;
+  isDeleting: boolean;
 }) {
-  const { name, avatarUrl, locationName, createdAt } = props;
+  const { name, avatarUrl, locationName, createdAt, onDelete, isDeleting } = props;
 
   return (
     <header className="flex items-center gap-3 px-2 py-1">
@@ -165,7 +189,17 @@ function Header(props: {
 
         <DropdownMenuContent align="end">
           <DropdownMenuItem>Copy link</DropdownMenuItem>
-          <DropdownMenuItem>Report an issue</DropdownMenuItem>
+          <DropdownMenuItem
+          className="text-red-500 focus:bg-red-50 focus:text-red-600"
+          onSelect={(e) => {
+            e.preventDefault();
+            onDelete();
+          }}
+          disabled={isDeleting}
+        >
+          Delete post
+        </DropdownMenuItem>
+
         </DropdownMenuContent>
       </DropdownMenu>
     </header>
