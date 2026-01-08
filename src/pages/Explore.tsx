@@ -40,7 +40,12 @@ export default function Explore() {
 
         <CreatePostPrompt onAddPost={() => setIsCreateOpen(true)} />
 
-        <Feed initialPosts={posts} isLoading={isLoading} error={error} />
+        <Feed
+        initialPosts={posts}
+        isLoading={isLoading}
+        error={error}
+        onDeleted={loadPosts}
+      />
       </div>
 
       {isCreateOpen && (

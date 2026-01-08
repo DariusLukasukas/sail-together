@@ -1,10 +1,19 @@
 import type { PostWithRelations } from "@/types/post";
 import { PostCard } from "./PostCard";
 
-type FeedProps = { initialPosts?: PostWithRelations[]; isLoading?: boolean; error?: string | null };
+type FeedProps = {
+  initialPosts: PostWithRelations[];
+  isLoading: boolean;
+  error: string | null;
+  onDeleted?: () => void | Promise<void>;
+};
 
-export function Feed({ initialPosts = [], isLoading = false, error = null }: FeedProps) {
-  if (isLoading) {
+    export function Feed({
+      initialPosts = [],
+      isLoading = false,
+      error = null,
+      onDeleted,
+}: FeedProps) {  if (isLoading) {
     return <p className="text-grey-500 text-center">Loading posts...</p>;
   }
   if (error) {
@@ -21,9 +30,13 @@ export function Feed({ initialPosts = [], isLoading = false, error = null }: Fee
       aria-live="polite"
       aria-busy={isLoading}
     >
-      {initialPosts.map((post) => (
-        <PostCard key={post.id} post={post} />
-      ))}
+    {initialPosts.map((post) => (
+      <PostCard
+        key={post.id}
+        post={post}
+        onDeleted={() => onDeleted?.()}
+      />
+    ))}
     </div>
   );
 }
