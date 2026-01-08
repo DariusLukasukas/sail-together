@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { Field, FieldLabel, FieldDescription, FieldError } from "../../ui/field";
 import { Spinner } from "@/components/ui/spinner";
 
+const MIN_PASSWORD_LENGTH = 8;
+
 export default function SignUpForm({ className, ...props }: React.ComponentProps<"form">) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +34,7 @@ export default function SignUpForm({ className, ...props }: React.ComponentProps
   const hasPassword = password.length > 0;
   const hasConfirmPassword = confirmPassword.length > 0;
 
-  const passwordTooShort = hasPassword && password.length < 8;
+  const passwordTooShort = hasPassword && password.length < MIN_PASSWORD_LENGTH;
   const passwordHasSpaces = hasPassword && (password.startsWith(" ") || password.endsWith(" "));
   const passwordMismatch = hasPassword && hasConfirmPassword && confirmPassword !== password;
 
@@ -129,12 +131,14 @@ export default function SignUpForm({ className, ...props }: React.ComponentProps
           aria-invalid={Boolean(passwordTooShort)}
           required
         />
-        <FieldDescription>Must be at least 8 characters long.</FieldDescription>
+        <FieldDescription>Must be at least {MIN_PASSWORD_LENGTH} characters long.</FieldDescription>
         <FieldError
           errors={
             [
               passwordHasSpaces && { message: "Password cannot start or end with spaces." },
-              passwordTooShort && { message: "Password must be at least 8 characters long." },
+              passwordTooShort && {
+                message: `Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`,
+              },
             ].filter(Boolean) as { message?: string }[]
           }
         />

@@ -35,18 +35,56 @@ function App() {
 
       <Route element={<RootLayout />}>
         <Route path="/jobs/:jobId" element={<JobPage />} />
-        <Route path="/jobs/:jobId/edit" element={<EditJobPage />} />
-        <Route path="/add-job" element={<AddJobPage />} />
+        <Route
+          path="/jobs/:jobId/edit"
+          element={
+            <ProtectedRoute>
+              <EditJobPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/add-job"
+          element={
+            <ProtectedRoute>
+              <AddJobPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/events" element={<Events />} />
-        <Route path="/favourites" element={<Favourites />} />
-        <Route path="/listings" element={<Listings />} />
+        <Route
+          path="/favourites"
+          element={
+            <ProtectedRoute>
+              <Favourites />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/listings"
+          element={
+            <ProtectedRoute>
+              <Listings />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/explore" element={<Explore />} />
-        <Route path="/profile" element={
+        <Route
+          path="/profile"
+          element={
             <ProtectedRoute>
               <Profile />
             </ProtectedRoute>
-          } />
-        <Route path="/profile/edit" element={<ProfileEdit />} />
+          }
+        />
+        <Route
+          path="/profile/edit"
+          element={
+            <ProtectedRoute>
+              <ProfileEdit />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       <Route element={<AuthLayout />}>
@@ -70,8 +108,22 @@ function App() {
 
       <Route element={<WizardLayout />}>
         <Route path="/add-listing">
-          <Route index element={<Navigate to="1" replace />} />
-          <Route path=":step" element={<AddListingWizard />} />
+          <Route
+            index
+            element={
+              <ProtectedRoute>
+                <Navigate to="1" replace />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path=":step"
+            element={
+              <ProtectedRoute>
+                <AddListingWizard />
+              </ProtectedRoute>
+            }
+          />
         </Route>
       </Route>
 
