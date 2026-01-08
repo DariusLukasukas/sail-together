@@ -13,11 +13,10 @@ import {
 import { Briefcase, CircleUserRound, Heart, Map, Menu, Settings, LibraryBig } from "lucide-react";
 
 export default function HeaderAuth() {
-  const [user, setUser] = useState<Parse.User | null>(() => {
-    const current = getCurrentUser();
-    return current ? (current as unknown as Parse.User) : null;
-  });
-  
+  const [user, setUser] = useState<Parse.User | null>(
+    () => (getCurrentUser() as unknown as Parse.User) ?? null
+  );
+
   const navigate = useNavigate();
 
   useEffect(() => {
