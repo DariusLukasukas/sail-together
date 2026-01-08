@@ -2,31 +2,37 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Container } from "@/components/ui/container";
-import { useCurrentUserProfile } from "@/features/profile/hooks";
+import { useProfile } from "@/contexts/profile_context";
 import EditProfileForm from "@/components/forms/EditProfileForm";
 import ChangePasswordForm from "@/components/forms/ChangePasswordForm";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "@/lib/toast"; // Assuming you have a toast utility
 
 type TabType = "profile" | "password" | "account";
 
 export default function EditProfilePage() {
   const navigate = useNavigate();
-  const { profile, isLoading } = useCurrentUserProfile();
+  const { profile, isLoading, error } = useProfile();
   const [activeTab, setActiveTab] = useState<TabType>("profile");
 
   function handleProfileSaved() {
-    console.log("Profile saved successfully");
+    toast.success("Profile updated successfully!");
+    // Optionally navigate back after a brief delay
+    setTimeout(() => {
+      navigate("/profile");
+    }, 1000);
   }
 
   function handlePasswordChanged() {
-    console.log("Password changed successfully");
+    toast.success("Password changed successfully!");
+    // Optionally log out other sessions or show additional info
   }
 
   function handleCancel() {
-    navigate(-1);
+    navigate("/profile");
   }
 
   if (isLoading) {
@@ -42,19 +48,31 @@ export default function EditProfilePage() {
     );
   }
 
-  if (!profile) {
+  if (error || !profile) {
     return (
       <Container className="container mx-auto max-w-3xl p-2">
         <div className="flex min-h-[50vh] items-center justify-center">
           <div className="border-destructive/20 bg-destructive/10 rounded-lg border p-6 text-center">
-            <h2 className="text-destructive mb-2 text-lg font-semibold">Unable to Load Profile</h2>
-            <p className="text-destructive/80 mb-4 text-sm">Please try logging in again.</p>
+            <h2 className="text-destructive mb-2 text-lg font-semibold">
+              Unable to Load Profile
+            </h2>
+            <p className="text-destructive/80 mb-4 text-sm">
+              {error?.message || "Please try logging in again."}
+            </p>
             <Button onClick={() => navigate("/login")}>Go to Login</Button>
           </div>
         </div>
       </Container>
     );
   }
+
+  const avatarInitials = (profile.name || profile.username)
+    .split(" ")
+    .map((n) => n[0])
+    .filter(Boolean)
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <Container className="container mx-auto max-w-3xl p-2">
@@ -70,14 +88,17 @@ export default function EditProfilePage() {
           Back to Profile
         </Button>
 
-        {/* Profile Header - Centered like Profile.tsx */}
+        {/* Profile Header */}
         <header className="flex flex-col items-center gap-2">
           <Avatar className="size-24 rounded-3xl bg-[#FFC7D6]">
             {profile.avatarUrl ? (
-              <AvatarImage src={profile.avatarUrl} alt={profile.name || profile.username} />
+              <AvatarImage 
+                src={profile.avatarUrl} 
+                alt={`${profile.name || profile.username}'s avatar`} 
+              />
             ) : (
-              <AvatarFallback className="text-2xl">
-                {(profile.name || profile.username).charAt(0).toUpperCase()}
+              <AvatarFallback className="text-2xl font-semibold">
+                {avatarInitials}
               </AvatarFallback>
             )}
           </Avatar>
@@ -87,9 +108,17 @@ export default function EditProfilePage() {
         </header>
 
         {/* Tabs Navigation */}
-        <nav className="border-b">
+        <nav 
+          className="border-b" 
+          role="tablist" 
+          aria-label="Profile settings tabs"
+        >
           <div className="flex justify-center gap-6">
             <button
+              role="tab"
+              aria-selected={activeTab === "profile"}
+              aria-controls="profile-panel"
+              id="profile-tab"
               onClick={() => setActiveTab("profile")}
               className={cn(
                 "border-b-2 pb-3 text-sm font-medium transition-colors",
@@ -101,6 +130,10 @@ export default function EditProfilePage() {
               Profile Information
             </button>
             <button
+              role="tab"
+              aria-selected={activeTab === "password"}
+              aria-controls="password-panel"
+              id="password-tab"
               onClick={() => setActiveTab("password")}
               className={cn(
                 "border-b-2 pb-3 text-sm font-medium transition-colors",
@@ -112,6 +145,10 @@ export default function EditProfilePage() {
               Password & Security
             </button>
             <button
+              role="tab"
+              aria-selected={activeTab === "account"}
+              aria-controls="account-panel"
+              id="account-tab"
               onClick={() => setActiveTab("account")}
               className={cn(
                 "border-b-2 pb-3 text-sm font-medium transition-colors",
@@ -127,34 +164,61 @@ export default function EditProfilePage() {
 
         {/* Tab Content */}
         <section className="space-y-2">
+          {/* Profile Tab */}
           {activeTab === "profile" && (
-            <div>
+            <div
+              role="tabpanel"
+              id="profile-panel"
+              aria-labelledby="profile-tab"
+              tabIndex={0}
+            >
               <h2 className="mb-4 text-xl font-semibold">Edit Profile</h2>
-              <EditProfileForm onSaved={handleProfileSaved} onCancel={handleCancel} />
+              <EditProfileForm 
+                onSaved={handleProfileSaved} 
+                onCancel={handleCancel} 
+              />
             </div>
           )}
 
+          {/* Password Tab */}
           {activeTab === "password" && (
-            <div>
+            <div
+              role="tabpanel"
+              id="password-panel"
+              aria-labelledby="password-tab"
+              tabIndex={0}
+            >
               <h2 className="mb-2 text-xl font-semibold">Change Password</h2>
               <p className="text-muted-foreground mb-4 text-sm">
                 Choose a strong password to keep your account secure
               </p>
-              <ChangePasswordForm onChanged={handlePasswordChanged} onCancel={handleCancel} />
+              <ChangePasswordForm 
+                onChanged={handlePasswordChanged} 
+                onCancel={handleCancel} 
+              />
             </div>
           )}
 
+          {/* Account Tab */}
           {activeTab === "account" && (
-            <div>
+            <div
+              role="tabpanel"
+              id="account-panel"
+              aria-labelledby="account-tab"
+              tabIndex={0}
+            >
               <h2 className="mb-4 text-xl font-semibold">Account Settings</h2>
 
-              {/* Account Info Section */}
               <div className="space-y-6">
                 {/* Email */}
                 <div>
                   <h3 className="mb-1 text-sm font-semibold">Email Address</h3>
                   <p className="text-muted-foreground mb-2">{profile.email}</p>
-                  <Button variant="outline" size="sm" disabled>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => toast.info("Email change coming soon!")}
+                  >
                     Change Email (Coming Soon)
                   </Button>
                 </div>
@@ -163,7 +227,9 @@ export default function EditProfilePage() {
                 <div>
                   <h3 className="mb-1 text-sm font-semibold">Username</h3>
                   <p className="text-muted-foreground mb-2">@{profile.username}</p>
-                  <p className="text-muted-foreground text-xs">Username cannot be changed</p>
+                  <p className="text-muted-foreground text-xs">
+                    Username cannot be changed
+                  </p>
                 </div>
 
                 {/* Account Stats Card */}
@@ -186,7 +252,10 @@ export default function EditProfilePage() {
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Member Since:</span>
                         <span className="font-medium">
-                          {new Date(profile.createdAt).toLocaleDateString()}
+                          {new Date(profile.createdAt).toLocaleDateString("en-US", {
+                            month: "long",
+                            year: "numeric",
+                          })}
                         </span>
                       </div>
                     )}
@@ -210,13 +279,41 @@ export default function EditProfilePage() {
                   </div>
                 )}
 
+                {/* Privacy Settings (Future) */}
+                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+                  <h3 className="text-blue-900 mb-2 text-sm font-semibold">
+                    Privacy Settings
+                  </h3>
+                  <p className="text-blue-700 mb-3 text-xs">
+                    Control who can see your profile information
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="border-blue-300"
+                    onClick={() => toast.info("Privacy settings coming soon!")}
+                  >
+                    Manage Privacy (Coming Soon)
+                  </Button>
+                </div>
+
                 {/* Danger Zone */}
                 <div className="border-destructive/20 bg-destructive/5 rounded-2xl border p-4">
-                  <h3 className="text-destructive mb-2 text-sm font-semibold">Danger Zone</h3>
+                  <h3 className="text-destructive mb-2 text-sm font-semibold">
+                    Danger Zone
+                  </h3>
                   <p className="text-muted-foreground mb-3 text-xs">
                     These actions are permanent and cannot be undone
                   </p>
-                  <Button variant="destructive" size="sm" disabled>
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    onClick={() => {
+                      if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+                        toast.error("Account deletion coming soon!");
+                      }
+                    }}
+                  >
                     Delete Account (Coming Soon)
                   </Button>
                 </div>

@@ -20,63 +20,72 @@ import Favourites from "@/pages/Favourites";
 import ProtectedRoute from "./layouts/ProtectedRoute";
 import Listings from "@/pages/Listings";
 import EditJobPage from "./pages/EditJobPage";
+import { ProfileProvider } from "./contexts/profile_context";
+import { ProfileErrorBoundary } from "@/components/errors/ProfileErrorBoundary";
 
 function App() {
   return (
-    <Routes>
-      <Route element={<MapPageLayout searchType="events" />}>
-        <Route path="/events" element={<Events />} />
-        <Route path="/test" element={<Test />} />
-      </Route>
+    <ProfileErrorBoundary>
+      <ProfileProvider>
+        <Routes>
+          <Route element={<MapPageLayout searchType="events" />}>
+            <Route path="/events" element={<Events />} />
+            <Route path="/test" element={<Test />} />
+          </Route>
 
-      <Route element={<MapPageLayout searchType="jobs" />}>
-        <Route path="/" element={<Home />} />
-      </Route>
+          <Route element={<MapPageLayout searchType="jobs" />}>
+            <Route path="/" element={<Home />} />
+          </Route>
 
-      <Route element={<RootLayout />}>
-        <Route path="/jobs/:jobId" element={<JobPage />} />
-        <Route path="/jobs/:jobId/edit" element={<EditJobPage />} />
-        <Route path="/add-job" element={<AddJobPage />} />
-        <Route path="/events" element={<Events />} />
-        <Route path="/favourites" element={<Favourites />} />
-        <Route path="/listings" element={<Listings />} />
-        <Route path="/explore" element={<Explore />} />
-        <Route path="/profile" element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          } />
-        <Route path="/profile/edit" element={<ProfileEdit />} />
-      </Route>
+          <Route element={<RootLayout />}>
+            <Route path="/jobs/:jobId" element={<JobPage />} />
+            <Route path="/jobs/:jobId/edit" element={<EditJobPage />} />
+            <Route path="/add-job" element={<AddJobPage />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/favourites" element={<Favourites />} />
+            <Route path="/listings" element={<Listings />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/profile/edit" element={<ProfileEdit />} />
+          </Route>
 
-      <Route element={<AuthLayout />}>
-        <Route
-          path="/signup"
-          element={
-            <GuestRoute>
-              <SignUpPage />
-            </GuestRoute>
-          }
-        />
-        <Route
-          path="/login"
-          element={
-            <GuestRoute>
-              <LoginPage />
-            </GuestRoute>
-          }
-        />
-      </Route>
+          <Route element={<AuthLayout />}>
+            <Route
+              path="/signup"
+              element={
+                <GuestRoute>
+                  <SignUpPage />
+                </GuestRoute>
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                <GuestRoute>
+                  <LoginPage />
+                </GuestRoute>
+              }
+            />
+          </Route>
 
-      <Route element={<WizardLayout />}>
-        <Route path="/add-listing">
-          <Route index element={<Navigate to="1" replace />} />
-          <Route path=":step" element={<AddListingWizard />} />
-        </Route>
-      </Route>
+          <Route element={<WizardLayout />}>
+            <Route path="/add-listing">
+              <Route index element={<Navigate to="1" replace />} />
+              <Route path=":step" element={<AddListingWizard />} />
+            </Route>
+          </Route>
 
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </ProfileProvider>
+    </ProfileErrorBoundary>
   );
 }
 

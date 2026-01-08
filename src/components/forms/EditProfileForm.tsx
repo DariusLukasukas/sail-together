@@ -1,12 +1,17 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Field, FieldLabel, FieldDescription } from "../ui/field";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Spinner } from "../ui/spinner";
 import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
-import { useCurrentUserProfile, useUpdateProfile } from "@/features/profile/hooks";
+import { useProfile } from "@/contexts/profile_context";
 import Parse from "@/lib/parse/client";
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_ABOUT_LENGTH = 500;
+const MAX_SKILLS = 20;
+const MAX_SKILL_LENGTH = 50;
 
 type EditProfileFormProps = React.ComponentProps<"form"> & {
   onCancel?: () => void;
@@ -19,8 +24,7 @@ export default function EditProfileForm({
   onSaved,
   ...props
 }: EditProfileFormProps) {
-  const { profile, isLoading: isLoadingProfile } = useCurrentUserProfile();
-  const { update, isLoading: isUpdating } = useUpdateProfile();
+  const { profile, updateProfile } = useProfile();
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -31,12 +35,14 @@ export default function EditProfileForm({
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load profile data when available
+  // Load profile data
   useEffect(() => {
     if (profile) {
       setName(profile.name || "");
@@ -48,7 +54,7 @@ export default function EditProfileForm({
     }
   }, [profile]);
 
-  // Clean up preview URL when component unmounts or file changes
+  // Cleanup preview URL
   useEffect(() => {
     return () => {
       if (previewUrl) {
@@ -57,33 +63,77 @@ export default function EditProfileForm({
     };
   }, [previewUrl]);
 
-  const isFormValid = name.trim().length > 0;
+  // Form validation
+  const isFormValid = useMemo(() => {
+    return name.trim().length > 0 && name.trim().length <= 100;
+  }, [name]);
+
+  const hasChanges = useMemo(() => {
+    if (!profile) return false;
+    return (
+      name !== (profile.name || "") ||
+      phone !== (profile.phone || "") ||
+      location !== (profile.location || "") ||
+      about !== (profile.about || "") ||
+      skillsInput !== (profile.skills?.join(", ") || "") ||
+      selectedFile !== null
+    );
+  }, [profile, name, phone, location, about, skillsInput, selectedFile]);
+
+  // Avatar display
+  const displayAvatarUrl = previewUrl || avatarUrl || undefined;
+  const displayName = name.trim() || profile?.name || profile?.username || "";
+  
+  const avatarInitials = useMemo(() => {
+    return displayName
+      .split(" ")
+      .map((n) => n[0])
+      .filter(Boolean)
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) || "U";
+  }, [displayName]);
+
+  // Character counts
+  const aboutCharCount = about.length;
+  const aboutRemaining = MAX_ABOUT_LENGTH - aboutCharCount;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    if (!isFormValid || isUpdating) return;
+    if (!isFormValid || isSubmitting) return;
 
     setError("");
     setSuccess("");
+    setIsSubmitting(true);
 
     try {
-      // Parse skills from comma-separated string
+      // Parse and validate skills
       const skillsArray = skillsInput
         .split(",")
         .map((s) => s.trim())
-        .filter((s) => s.length > 0);
+        .filter((s) => s.length > 0 && s.length <= MAX_SKILL_LENGTH)
+        .slice(0, MAX_SKILLS);
 
       let finalAvatarUrl = avatarUrl.trim() || undefined;
 
-      // If a file is selected, upload it to Parse first
+      // Upload file if selected
       if (selectedFile) {
+        setUploadProgress(10);
         const parseFile = new Parse.File(selectedFile.name, selectedFile);
-        await parseFile.save();
+        
+        await parseFile.save({
+          progress: (progressValue: number) => {
+            setUploadProgress(Math.round(progressValue * 100));
+          }
+        });
+        
         finalAvatarUrl = parseFile.url() || finalAvatarUrl;
+        setUploadProgress(100);
       }
 
-      await update({
+      // Update profile
+      await updateProfile({
         name: name.trim(),
         phone: phone.trim() || undefined,
         avatarUrl: finalAvatarUrl,
@@ -92,24 +142,37 @@ export default function EditProfileForm({
         skills: skillsArray.length > 0 ? skillsArray : undefined,
       });
 
-      // Clear file selection after successful upload
+      // Clear file selection
       setSelectedFile(null);
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
         setPreviewUrl(null);
       }
+      setUploadProgress(0);
 
       setSuccess("Profile updated successfully!");
 
+      // Call callback immediately
       if (onSaved) {
-        setTimeout(() => {
-          onSaved();
-        }, 1500);
+        onSaved();
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error updating profile:", err);
-      const message = err instanceof Error ? err.message : "Failed to update profile";
+      
+      let message = "Failed to update profile";
+      if (err instanceof Error) {
+        if (err.message.includes("network")) {
+          message = "Network error. Please check your connection and try again.";
+        } else if (err.message.includes("permission")) {
+          message = "You don't have permission to update this profile.";
+        } else {
+          message = err.message;
+        }
+      }
+      
       setError(message);
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -124,7 +187,7 @@ export default function EditProfileForm({
       setSkillsInput(profile.skills?.join(", ") || "");
     }
     
-    // Clear file selection and preview
+    // Clear file selection
     setSelectedFile(null);
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
@@ -136,10 +199,9 @@ export default function EditProfileForm({
     
     setError("");
     setSuccess("");
+    setUploadProgress(0);
 
-    if (onCancel) {
-      onCancel();
-    }
+    onCancel?.();
   }
 
   function handleAvatarClick() {
@@ -152,43 +214,25 @@ export default function EditProfileForm({
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
-      setError("Please select an image file");
+      setError("Please select an image file (JPEG, PNG, GIF, etc.)");
       return;
     }
 
-    // Validate file size (e.g., max 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      setError("Image size must be less than 5MB");
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      setError(`Image size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
       return;
     }
 
     setSelectedFile(file);
     setError("");
 
-    // Create preview URL
+    // Create preview
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
-  }
-
-  // Get the avatar URL to display (preview or existing)
-  const displayAvatarUrl = previewUrl || avatarUrl || undefined;
-  const displayName = name.trim() || profile?.name || "";
-  const avatarInitials = displayName
-    .split(" ")
-    .map((n) => n[0])
-    .filter((char) => char)
-    .join("")
-    .toUpperCase()
-    .slice(0, 2) || "U";
-
-  if (isLoadingProfile) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Spinner />
-        <span className="text-muted-foreground ml-2 text-sm">Loading profile...</span>
-      </div>
-    );
   }
 
   if (!profile) {
@@ -204,28 +248,43 @@ export default function EditProfileForm({
       {/* Avatar Upload */}
       <Field>
         <FieldLabel>Profile Picture</FieldLabel>
-        <FieldDescription>Click on the avatar to upload a new image from your device</FieldDescription>
-        <div className="flex justify-center">
+        <FieldDescription>
+          Click on the avatar to upload a new image (max {MAX_FILE_SIZE / (1024 * 1024)}MB)
+        </FieldDescription>
+        <div className="flex flex-col items-center gap-2">
           <button
             type="button"
             onClick={handleAvatarClick}
             className="relative group cursor-pointer"
             aria-label="Change profile picture"
           >
-            <Avatar className="size-24 rounded-full border-2 border-gray-300 group-hover:border-gray-400 transition-colors">
+            <Avatar className="size-24 rounded-full border-2 border-gray-300 group-hover:border-blue-500 transition-colors">
               <AvatarImage src={displayAvatarUrl} alt="Profile avatar" />
               <AvatarFallback className="bg-[#FFC7D6] text-lg font-semibold">
                 {avatarInitials}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
               <span className="text-white text-xs font-medium">Change</span>
             </div>
           </button>
+          {uploadProgress > 0 && uploadProgress < 100 && (
+            <div className="w-full max-w-xs">
+              <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="bg-blue-500 h-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+              <p className="text-xs text-center mt-1 text-muted-foreground">
+                Uploading... {uploadProgress}%
+              </p>
+            </div>
+          )}
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/gif,image/webp"
             onChange={handleFileChange}
             className="hidden"
             aria-label="Profile picture file input"
@@ -244,6 +303,7 @@ export default function EditProfileForm({
           placeholder="Jack Sparrow"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          maxLength={100}
         />
       </Field>
 
@@ -251,14 +311,26 @@ export default function EditProfileForm({
       <Field>
         <FieldLabel htmlFor="username">Username</FieldLabel>
         <FieldDescription>Your username cannot be changed</FieldDescription>
-        <Input id="username" type="text" value={profile.username} disabled className="bg-muted" />
+        <Input 
+          id="username" 
+          type="text" 
+          value={profile.username} 
+          disabled 
+          className="bg-muted cursor-not-allowed" 
+        />
       </Field>
 
-      {/* Email (Read-only - should be changed via separate flow) */}
+      {/* Email (Read-only) */}
       <Field>
         <FieldLabel htmlFor="email">Email</FieldLabel>
-        <FieldDescription>To change your email, use account settings</FieldDescription>
-        <Input id="email" type="email" value={profile.email} disabled className="bg-muted" />
+        <FieldDescription>To change your email, contact support</FieldDescription>
+        <Input 
+          id="email" 
+          type="email" 
+          value={profile.email} 
+          disabled 
+          className="bg-muted cursor-not-allowed" 
+        />
       </Field>
 
       {/* Phone */}
@@ -271,6 +343,7 @@ export default function EditProfileForm({
           placeholder="+45 12 34 56 78"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
+          maxLength={20}
         />
       </Field>
 
@@ -284,27 +357,42 @@ export default function EditProfileForm({
           placeholder="Copenhagen, Denmark"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
+          maxLength={100}
         />
       </Field>
 
       {/* About */}
       <Field>
         <FieldLabel htmlFor="about">About</FieldLabel>
-        <FieldDescription>Tell us about yourself and your experience</FieldDescription>
+        <FieldDescription>
+          Tell us about yourself and your experience ({aboutRemaining} characters remaining)
+        </FieldDescription>
         <textarea
           id="about"
           placeholder="Brief bio or description..."
           value={about}
           onChange={(e) => setAbout(e.target.value)}
-          className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring min-h-32 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          maxLength={MAX_ABOUT_LENGTH}
+          className={cn(
+            "border-input bg-background ring-offset-background placeholder:text-muted-foreground",
+            "focus-visible:ring-ring min-h-32 w-full rounded-md border px-3 py-2 text-sm",
+            "focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
+            "disabled:cursor-not-allowed disabled:opacity-50 resize-y",
+            aboutRemaining < 50 && "border-orange-300"
+          )}
         />
+        {aboutRemaining < 50 && (
+          <p className="text-xs text-orange-600 mt-1">
+            {aboutRemaining} characters remaining
+          </p>
+        )}
       </Field>
 
       {/* Skills */}
       <Field>
         <FieldLabel htmlFor="skills">Skills</FieldLabel>
         <FieldDescription>
-          Enter your skills separated by commas (e.g., Navigation, Engineering, Fishing)
+          Enter up to {MAX_SKILLS} skills separated by commas (e.g., Navigation, Engineering, Fishing)
         </FieldDescription>
         <Input
           id="skills"
@@ -313,13 +401,33 @@ export default function EditProfileForm({
           value={skillsInput}
           onChange={(e) => setSkillsInput(e.target.value)}
         />
+        {skillsInput && (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {skillsInput
+              .split(",")
+              .map((s) => s.trim())
+              .filter((s) => s.length > 0)
+              .slice(0, MAX_SKILLS)
+              .map((skill, idx) => (
+                <span
+                  key={idx}
+                  className={cn(
+                    "bg-primary/10 text-primary rounded-full px-3 py-1 text-xs font-medium",
+                    skill.length > MAX_SKILL_LENGTH && "bg-red-100 text-red-600"
+                  )}
+                >
+                  {skill.length > MAX_SKILL_LENGTH ? `${skill.slice(0, 20)}... (too long)` : skill}
+                </span>
+              ))}
+          </div>
+        )}
       </Field>
 
       {/* Error Message */}
       {error && (
         <div
           role="alert"
-          aria-live="polite"
+          aria-live="assertive"
           className="bg-destructive/10 text-destructive border-destructive/20 w-full rounded-xl border px-3 py-2 text-center text-sm font-medium"
         >
           {error}
@@ -345,13 +453,19 @@ export default function EditProfileForm({
           variant="secondary"
           className="flex-1"
           onClick={handleCancelClick}
+          disabled={isSubmitting}
         >
           Cancel
         </Button>
 
-        <Button type="submit" size="lg" className="flex-1" disabled={!isFormValid || isUpdating}>
-          {isUpdating && <Spinner />}
-          Save Changes
+        <Button 
+          type="submit" 
+          size="lg" 
+          className="flex-1" 
+          disabled={!isFormValid || !hasChanges || isSubmitting}
+        >
+          {isSubmitting && <Spinner className="mr-2" />}
+          {isSubmitting ? "Saving..." : "Save Changes"}
         </Button>
       </div>
     </form>
