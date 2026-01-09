@@ -37,6 +37,7 @@ function parseToJSON<T>(obj: Event): T {
     endDate: obj.get("endDate") || null,
     priceAmount: obj.get("priceAmount") || null,
     isFavorite: obj.get("isFavorite") || false,
+    imageUrl: obj.get("imageUrl") || undefined,
     createdAt: obj.get("createdAt"),
     updatedAt: obj.get("updatedAt"),
   } as T;
@@ -46,6 +47,7 @@ export async function getEvents(filters?: EventSearchFilters): Promise<EventAttr
   const query = new Parse.Query(Event);
   query.include("locationId");
   query.include("createdById");
+  query.ascending("startDate")
 
   // Filter by event type (category)
   if (filters?.eventType) {
@@ -126,6 +128,7 @@ export async function createEvent({
   priceKind,
   priceAmount,
   priceCurrency,
+  imageFile,
 }: {
   title: string;
   description?: string;
@@ -141,11 +144,20 @@ export async function createEvent({
   priceKind: "free" | "paid";
   priceAmount?: number;
   priceCurrency?: Currency;
+  imageFile?: File | null;
 }): Promise<Event> {
 
   const currentUser = Parse.User.current() as _User | null;
   if (!currentUser) {
     throw new Error("User must be logged in to create an event");
+  }
+
+  // Upload image file if provided
+  let imageUrl: string | undefined;
+  if (imageFile) {
+    const parseFile = new Parse.File(imageFile.name, imageFile);
+    await parseFile.save();
+    imageUrl = parseFile.url() || undefined;
   }
 
   // Create Location
@@ -167,6 +179,7 @@ export async function createEvent({
   // Set optional fields
   if (description) event.description = description;
   if (endDate) event.endDate = endDate;
+  if (imageUrl) event.imageUrl = imageUrl;
   if (priceKind === "paid" && priceAmount) {
     event.priceAmount = priceAmount;
     if (priceCurrency) event.priceCurrency = priceCurrency;
@@ -204,3 +217,133 @@ export async function getFavoriteEvents(): Promise<EventAttributes[]> {
 }
 
 
+export async function getEventById(id: string): Promise<EventAttributes | null> {
+  const query = new Parse.Query(Event);
+
+  query.include("locationId");
+  query.include("createdById");
+
+  try {
+    const event = await query.get(id)
+
+    if (!event) {
+      return null;
+    }
+
+    const baseEvent = parseToJSON<EventAttributes>(event)
+
+    return baseEvent
+  }
+  catch (err: any) {
+    console.error("Failed to fetch event:", err.message);
+    throw err;
+  }
+}
+
+export interface EventParticipant {
+  id: string;
+  userId: string;
+  userName: string | null;
+  userAvatarUrl: string | null;
+  userDisplayName: string | null;
+  createdAt: Date;
+}
+
+export async function getEventParticipants(eventId: string): Promise<EventParticipant[]> {
+  const eventPtr = new Parse.Object("Event");
+  eventPtr.id = eventId;
+
+  const query = new Parse.Query("EventParticipant");
+  query.equalTo("eventId", eventPtr);
+  query.include("userId");
+  query.ascending("createdAt");
+
+  try {
+    const results = await query.find();
+    const participants: EventParticipant[] = [];
+    
+    for (const participant of results) {
+      if (!participant.id) continue;
+      
+      const user = participant.get("userId") as Parse.User | undefined;
+      participants.push({
+        id: participant.id,
+        userId: user?.id ?? "",
+        userName: (user && user.get("username")) ?? null,
+        userAvatarUrl: (user && user.get("avatarUrl")) ?? null,
+        userDisplayName: (user && user.get("name")) ?? null,
+        createdAt: participant.createdAt ?? new Date(),
+      });
+    }
+    
+    return participants;
+  } catch (err: any) {
+    console.error("Failed to fetch event participants:", err.message);
+    throw err;
+  }
+}
+
+export async function toggleEventParticipation(eventId: string): Promise<{
+  isParticipating: boolean;
+  participantCount: number;
+}> {
+  const currentUser = Parse.User.current();
+  if (!currentUser) {
+    throw new Error("Not authenticated");
+  }
+
+  const eventPtr = new Parse.Object("Event");
+  eventPtr.id = eventId;
+
+  const participantQuery = new Parse.Query("EventParticipant");
+  participantQuery.equalTo("eventId", eventPtr);
+  participantQuery.equalTo("userId", currentUser);
+  participantQuery.limit(1);
+
+  const existing = await participantQuery.first();
+
+  if (existing) {
+    // Leave event
+    await existing.destroy();
+    const participants = await getEventParticipants(eventId);
+    return {
+      isParticipating: false,
+      participantCount: participants.length,
+    };
+  } else {
+    // Join event
+    const newParticipant = new Parse.Object("EventParticipant");
+    newParticipant.set("eventId", eventPtr);
+    newParticipant.set("userId", currentUser);
+    await newParticipant.save();
+
+    const participants = await getEventParticipants(eventId);
+    return {
+      isParticipating: true,
+      participantCount: participants.length,
+    };
+  }
+}
+
+export async function isUserParticipating(eventId: string): Promise<boolean> {
+  const currentUser = Parse.User.current();
+  if (!currentUser) {
+    return false;
+  }
+
+  const eventPtr = new Parse.Object("Event");
+  eventPtr.id = eventId;
+
+  const query = new Parse.Query("EventParticipant");
+  query.equalTo("eventId", eventPtr);
+  query.equalTo("userId", currentUser);
+  query.limit(1);
+
+  try {
+    const result = await query.first();
+    return !!result;
+  } catch (err: any) {
+    console.error("Failed to check participation:", err.message);
+    return false;
+  }
+}

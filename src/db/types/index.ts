@@ -7,6 +7,9 @@ export type { CommentAttributes } from "./Comment";
 export { Event } from "./Event";
 export type { EventAttributes } from "./Event";
 
+export { EventParticipant } from "./EventParticipant";
+export type { EventParticipantAttributes } from "./EventParticipant";
+
 export { Experience } from "./Experience";
 export type { ExperienceAttributes } from "./Experience";
 

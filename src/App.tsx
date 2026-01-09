@@ -16,10 +16,12 @@ import ProfileEdit from "@/pages/ProfileEdit";
 import MapPageLayout from "@/layouts/MapPageLayout";
 import Test from "@/pages/Test";
 import AddJobPage from "@/pages/AddJobPage";
+import AddEventPage from "@/pages/AddEventPage";
 import Favourites from "@/pages/Favourites";
 import ProtectedRoute from "./layouts/ProtectedRoute";
 import Listings from "@/pages/Listings";
 import EditJobPage from "./pages/EditJobPage";
+import EventPage from "./pages/EventPage";
 
 function App() {
   return (
@@ -51,7 +53,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/add-event"
+          element={
+            <ProtectedRoute>
+              <AddEventPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/events" element={<Events />} />
+        <Route path="/events/:eventId" element={<EventPage />} />
         <Route
           path="/favourites"
           element={

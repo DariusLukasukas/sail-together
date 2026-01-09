@@ -43,18 +43,22 @@ export async function createSchemas() {
         "Location"
     );
 
-    const eventSchema = new Parse.Schema("Event");
-    eventSchema.addPointer("createdById", "_User", { required: true });
-    eventSchema.addPointer("locationId", "Location", { required: true });
-    eventSchema.addString("title", { required: true });
-    eventSchema.addString("description");
-    eventSchema.addBoolean("isFavorite", { defaultValue: false });
-    eventSchema.addDate("startDate", { required: true });
-    eventSchema.addDate("endDate");
-    eventSchema.addString("categorySlug", { required: true, defaultValue: "other" });
-    eventSchema.addString("priceKind", { required: true, defaultValue: "free" });
-    eventSchema.addNumber("priceAmount");
-    eventSchema.addString("priceCurrency", { defaultValue: "DKK" });
+    await safeSave(
+        new Parse.Schema("Event")
+            .addPointer("createdById", "_User", { required: true })
+            .addPointer("locationId", "Location", { required: true })
+            .addString("title", { required: true })
+            .addString("description")
+            .addBoolean("isFavorite", { defaultValue: false })
+            .addDate("startDate", { required: true })
+            .addDate("endDate")
+            .addString("categorySlug", { required: true, defaultValue: "other" })
+            .addString("priceKind", { required: true, defaultValue: "free" })
+            .addNumber("priceAmount")
+            .addString("priceCurrency", { defaultValue: "DKK" })
+            .addString("imageUrl"),
+        "Event"
+    );
 
     await safeSave(
         new Parse.Schema("Job")
@@ -110,6 +114,13 @@ export async function createSchemas() {
             .addPointer("postId", "Post", { required: true })
             .addPointer("userId", "_User", { required: true }),
         "PostLike"
+    );
+
+    await safeSave(
+        new Parse.Schema("EventParticipant")
+            .addPointer("eventId", "Event", { required: true })
+            .addPointer("userId", "_User", { required: true }),
+        "EventParticipant"
     );
 
     await safeSave(

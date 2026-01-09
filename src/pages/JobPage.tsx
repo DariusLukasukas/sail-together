@@ -16,7 +16,7 @@ export default function JobPage() {
   const [initialLoad, setInitialLoad] = useState(true);
   const { jobId } = useParams<{ jobId: string }>();
   const { data: job, isLoading } = useSWR(jobId ? `job-${jobId}` : null, () => getJobById(jobId!));
-   const toggleFavorite = useToggleJobFavorite(jobId ? `job-${jobId}` : null);
+  const toggleFavorite = useToggleJobFavorite(jobId ? `job-${jobId}` : null);
 
   const mapData = useMemo(() => {
     if (

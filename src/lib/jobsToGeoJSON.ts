@@ -15,6 +15,7 @@ function jobToFeature(job: JobAttributes): GenericFeature {
     properties: {
       id: job.id,
       title: job.title,
+      imageUrl: job.imageUrl,
     },
   };
 }

@@ -13,6 +13,7 @@ export interface EventAttributes {
   categorySlug?: string | undefined;
   createdById?: _User | undefined;
   description?: string | undefined;
+  imageUrl?: string | undefined;
   endDate?: Date | undefined;
   isFavorite?: boolean | undefined;
   locationId: Location;
@@ -21,6 +22,25 @@ export interface EventAttributes {
   priceKind: string;
   startDate: Date;
   title: string;
+}
+
+export interface EventWithRelations extends EventAttributes {
+  location: {
+    id: string;
+    name: string;
+    address: string;
+    longitude: number;
+    latitude: number;
+  };
+  category: {
+    slug: string;
+    name: string;
+  };
+  createdBy?: {
+    id: string;
+    name?: string;
+    avatarUrl?: string;
+  };
 }
 
 export class Event extends Parse.Object<EventAttributes> {
@@ -56,6 +76,13 @@ export class Event extends Parse.Object<EventAttributes> {
   }
   set description(value: string | undefined) {
     super.set("description", value);
+  }
+
+  get imageUrl(): string | undefined {
+    return super.get("imageUrl");
+  }
+  set imageUrl(value: string | undefined) {
+    super.set("imageUrl", value);
   }
 
   get endDate(): Date | undefined {

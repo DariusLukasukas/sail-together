@@ -7,6 +7,7 @@ export type EventFeatureProperties = {
   id: string;
   title: string;
   category: CategorySlug;
+  imageUrl?: string;
 };
 
 export type EventFeature = Feature<Point, EventFeatureProperties>;
@@ -23,6 +24,7 @@ function eventToFeature(event: EventWithRelations): EventFeature {
       id: event.id,
       title: event.title,
       category: event.category.slug,
+      imageUrl: event.imageUrl,
     },
   };
 }

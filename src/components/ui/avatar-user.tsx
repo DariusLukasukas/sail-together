@@ -10,7 +10,7 @@ type AvatarUserProps = React.ComponentProps<typeof Avatar> & {
   fallbackInitials?: string;
 };
 
-function getInitials(name?: string, username?: string, fallback = "CL") {
+export function getInitials(name?: string, username?: string, fallback = "CL") {
   const source = name || username;
   if (!source) return fallback;
   const initials = source
