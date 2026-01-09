@@ -14,13 +14,26 @@ import GlobeIcon from "@/components/icons/GlobeIcon";
 import { Media, MediaFallback } from "@/components/ui/media";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import Parse from "@/lib/parse/client";
+import { getInitials } from "@/components/ui/avatar-user";
 
 export default function Profile() {
   const navigate = useNavigate();
+  const currentUser = Parse.User.current();
+  
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Get current user's avatar and name
+  const avatarUrl = (currentUser.get("avatarUrl") as string | undefined) || undefined;
+  const name = (currentUser.get("name") as string | undefined) || undefined;
+  const username = (currentUser.get("username") as string | undefined) || undefined;
+  const displayName = name || username || "User";
+  const initials = getInitials(name, username, "U");
+
   const userProfile = getUserProfile();
   const {
-    avatarUrl,
-    name,
     rating,
     role,
     createdAt,
@@ -42,11 +55,11 @@ export default function Profile() {
         <header className="flex flex-col items-center gap-2 [&>p]:flex [&>p]:items-center [&>p]:gap-2 [&>p]:font-semibold">
           <Avatar className="size-24 rounded-3xl bg-[#FFC7D6]">
             <AvatarImage src={avatarUrl} alt="User Avatar" />
-            <AvatarFallback>CA</AvatarFallback>
+            <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
 
           <h1 id="profile-name" className="text-2xl font-bold">
-            {name}
+            {displayName}
           </h1>
           <div className="flex items-center gap-2">
             <Rating value={rating ?? 0} max={5} size={24} />
@@ -68,10 +81,10 @@ export default function Profile() {
           <ContactActions email={email} phone={phone} />
         </header>
 
-          {/* Edit Profile Button - matching Add Listing style */}
-          <Button size={"sm"} variant="secondary" onClick={() => navigate("/profile/edit")} className="max-w-xs mx-auto">
-            Edit Profile
-          </Button>
+        {/* Edit Profile Button - matching Add Listing style */}
+        <Button size={"sm"} variant="secondary" onClick={() => navigate("/profile/edit")} className="max-w-xs mx-auto">
+          Edit Profile
+        </Button>
 
         <section>
           <h2 className="text-xl font-semibold">About Me</h2>

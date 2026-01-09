@@ -14,13 +14,13 @@ interface PopupProps {
 export default function Popup({ map, feature }: PopupProps) {
   const { geometry, properties } = feature;
   const navigate = useNavigate();
-  
-  // Check if this is an EventFeature with imageUrl
+
+  // Check if this feature has imageUrl (works for both events and jobs)
   const imageUrl = "imageUrl" in properties ? properties.imageUrl : undefined;
-  
+
   // Determine if this is an event (has required category) or a job
   const isEvent = "category" in properties && properties.category !== undefined;
-  
+
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isEvent) {
@@ -71,7 +71,7 @@ export default function Popup({ map, feature }: PopupProps) {
   return (
     <>
       {createPortal(
-        <div 
+        <div
           className="bg-card overflow-hidden rounded-xl border border-border cursor-pointer transition-transform hover:scale-105"
           onClick={handleClick}
         >

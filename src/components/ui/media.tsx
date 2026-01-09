@@ -15,7 +15,7 @@ function Media({ className, children, ...props }: React.ComponentProps<"div">) {
 
 function MediaImage({ className, ...props }: React.ComponentProps<"img">) {
   return (
-    <img data-slot="media-image" className={cn("size-full object-cover", className)} {...props} />
+    <img data-slot="media-image" className={cn("size-full object-cover select-none", className)} {...props} />
   );
 }
 

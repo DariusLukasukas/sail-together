@@ -4,6 +4,7 @@ export type CommonMapProperties = {
   id: string;
   title: string;
   category?: string;
+  imageUrl?: string;
 };
 
 export type GenericFeature = Feature<Point, CommonMapProperties>;
