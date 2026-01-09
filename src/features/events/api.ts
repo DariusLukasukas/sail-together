@@ -190,6 +190,97 @@ export async function createEvent({
   return saved as Event;
 }
 
+export async function updateEvent(
+  id: string,
+  {
+    title,
+    description,
+    startDate,
+    endDate,
+    categorySlug,
+    location,
+    priceKind,
+    priceAmount,
+    priceCurrency,
+    imageFile,
+    imageUrl,
+  }: {
+    title?: string;
+    description?: string;
+    startDate?: Date;
+    endDate?: Date;
+    categorySlug?: string;
+    location?: {
+      name: string;
+      address: string;
+      longitude: number;
+      latitude: number;
+    };
+    priceKind?: "free" | "paid";
+    priceAmount?: number;
+    priceCurrency?: Currency;
+    imageFile?: File | null;
+    imageUrl?: string;
+  }
+): Promise<Event> {
+  const currentUser = Parse.User.current() as _User | null;
+  if (!currentUser) {
+    throw new Error("User must be logged in to update an event");
+  }
+
+  const query = new Parse.Query(Event);
+  query.include("locationId");
+  query.include("createdById");
+
+  try {
+    const event = await query.get(id);
+
+    const createdById = event.get("createdById");
+    if (createdById?.id !== currentUser.id) {
+      throw new Error("Only the event creator can update this event");
+    }
+
+    if (title !== undefined) event.title = title;
+    if (description !== undefined) event.description = description;
+    if (startDate !== undefined) event.startDate = startDate;
+    if (endDate !== undefined) event.endDate = endDate;
+    if (categorySlug !== undefined) event.categorySlug = categorySlug;
+    if (priceKind !== undefined) event.priceKind = priceKind;
+    if (priceAmount !== undefined) event.priceAmount = priceAmount;
+    if (priceCurrency !== undefined) event.priceCurrency = priceCurrency;
+
+    // Handle image updates: prioritize new file over existing URL
+    if (imageFile !== undefined) {
+      if (imageFile) {
+        // New file provided - upload it
+        const parseFile = new Parse.File(imageFile.name, imageFile);
+        await parseFile.save();
+        event.imageUrl = parseFile.url() || undefined;
+      }
+      // If imageFile is explicitly null/undefined, don't change existing image
+    } else if (imageUrl !== undefined) {
+      // Only set imageUrl if imageFile wasn't provided
+      event.imageUrl = imageUrl;
+    }
+
+    if (location !== undefined) {
+      const locationObj = new Location();
+      locationObj.name = location.name;
+      locationObj.address = location.address;
+      locationObj.longitude = location.longitude;
+      locationObj.latitude = location.latitude;
+      await locationObj.save();
+      event.locationId = locationObj;
+    }
+
+    await event.save();
+    return event as Event;
+  } catch (err: any) {
+    console.error("Failed to update event:", err.message);
+    throw err;
+  }
+}
+
 export async function toggleEventFavorite(id: string): Promise<boolean> {
   const query = new Parse.Query(Event);
   

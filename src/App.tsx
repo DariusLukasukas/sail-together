@@ -22,6 +22,7 @@ import ProtectedRoute from "./layouts/ProtectedRoute";
 import Listings from "@/pages/Listings";
 import EditJobPage from "./pages/EditJobPage";
 import EventPage from "./pages/EventPage";
+import EditEventPage from "./pages/EditEventPage";
 
 function App() {
   return (
@@ -63,6 +64,14 @@ function App() {
         />
         <Route path="/events" element={<Events />} />
         <Route path="/events/:eventId" element={<EventPage />} />
+        <Route
+          path="/events/:eventId/edit"
+          element={
+            <ProtectedRoute>
+              <EditEventPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/favourites"
           element={

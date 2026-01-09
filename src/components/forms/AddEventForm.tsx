@@ -4,14 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldLabel, FieldError } from "@/components/ui/field";
 import MapWithGeocoder from "@/components/map/MapWithGeocoder";
 import type { Location } from "@/types/location";
-import { useState } from "react";
-import { createEvent } from "@/features/events/api";
+import { useState, useEffect } from "react";
+import { createEvent, updateEvent } from "@/features/events/api";
 import { mutate } from "swr";
 import DateTimePicker from "./DateTimePicker";
 import CategorySelector from "./CategorySelector";
 import PriceSelector from "./PriceSelector";
 import type { Currency } from "@/types/event";
 import type { CategorySlug } from "@/types/category";
+import type { EventAttributes } from "@/db/types/Event";
+import { Textarea } from "../ui/textarea";
 
 type FormState = {
   title: string;
@@ -40,20 +42,61 @@ const INITIAL_FORM_STATE: FormState = {
 };
 
 interface AddEventFormProps extends Omit<React.ComponentProps<"form">, "onSubmit"> {
+  mode?: "create" | "edit";
+  event?: EventAttributes;
   onSuccess?: () => void;
   onCancel?: () => void;
+  submitLabel?: string;
 }
 
 export default function AddEventForm({
   className,
+  mode = "create",
+  event,
   onSuccess,
   onCancel,
+  submitLabel,
   ...props
 }: AddEventFormProps) {
   const [form, setForm] = useState<FormState>(INITIAL_FORM_STATE);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Initialize form with event data when in edit mode
+  useEffect(() => {
+    if (mode === "edit" && event) {
+      const location = event.locationId as any;
+      setForm({
+        title: event.title || "",
+        description: event.description || undefined,
+        location: location
+          ? {
+            id: location.id || location.objectId || "",
+            name: location.name || "",
+            address: location.address || "",
+            longitude: location.longitude || 0,
+            latitude: location.latitude || 0,
+          }
+          : null,
+        categorySlug: (event.categorySlug as CategorySlug) || null,
+        startDate: event.startDate ? new Date(event.startDate) : new Date(),
+        endDate: event.endDate ? new Date(event.endDate) : undefined,
+        priceKind: (event.priceKind as "free" | "paid") || null,
+        priceAmount: event.priceAmount || undefined,
+        priceCurrency: (event.priceCurrency as Currency) || "DKK",
+        imageFile: null, // Don't pre-populate file input
+      });
+      // Set image preview to existing image URL
+      if (event.imageUrl) {
+        setImagePreview(event.imageUrl);
+      }
+    } else {
+      // Reset preview when switching to create mode
+      setImagePreview(null);
+    }
+  }, [mode, event]);
 
   const updateField = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -99,31 +142,72 @@ export default function AddEventForm({
     setIsSubmitting(true);
 
     try {
-      await createEvent({
-        title: form.title.trim(),
-        description: form.description?.trim() || undefined,
-        startDate: form.startDate,
-        endDate: form.endDate,
-        categorySlug: form.categorySlug!,
-        location: {
-          name: form.location!.name,
-          address: form.location!.address,
-          longitude: form.location!.longitude,
-          latitude: form.location!.latitude,
-        },
-        priceKind: form.priceKind!,
-        priceAmount: form.priceKind === "paid" ? form.priceAmount : undefined,
-        priceCurrency: form.priceKind === "paid" ? form.priceCurrency : undefined,
-        imageFile: form.imageFile || undefined,
-      });
+      if (mode === "edit" && event) {
+        // Update existing event
+        const updateData: Parameters<typeof updateEvent>[1] = {
+          title: form.title.trim(),
+          description: form.description?.trim() || undefined,
+          startDate: form.startDate,
+          endDate: form.endDate,
+          categorySlug: form.categorySlug!,
+          location: {
+            name: form.location!.name,
+            address: form.location!.address,
+            longitude: form.location!.longitude,
+            latitude: form.location!.latitude,
+          },
+          priceKind: form.priceKind!,
+          priceAmount: form.priceKind === "paid" ? form.priceAmount : undefined,
+          priceCurrency: form.priceKind === "paid" ? form.priceCurrency : undefined,
+        };
 
-      // Invalidate and refetch events cache
-      await mutate("events");
-      resetForm();
+        // Handle image: if new file provided, use it; otherwise keep existing
+        if (form.imageFile) {
+          updateData.imageFile = form.imageFile;
+        } else if (event.imageUrl) {
+          updateData.imageUrl = event.imageUrl;
+        }
+
+        await updateEvent(event.id, updateData);
+
+        // Invalidate caches
+        await mutate("events");
+        await mutate(`event-${event.id}`);
+      } else {
+        // Create new event
+        await createEvent({
+          title: form.title.trim(),
+          description: form.description?.trim() || undefined,
+          startDate: form.startDate,
+          endDate: form.endDate,
+          categorySlug: form.categorySlug!,
+          location: {
+            name: form.location!.name,
+            address: form.location!.address,
+            longitude: form.location!.longitude,
+            latitude: form.location!.latitude,
+          },
+          priceKind: form.priceKind!,
+          priceAmount: form.priceKind === "paid" ? form.priceAmount : undefined,
+          priceCurrency: form.priceKind === "paid" ? form.priceCurrency : undefined,
+          imageFile: form.imageFile || undefined,
+        });
+
+        // Invalidate and refetch events cache
+        await mutate("events");
+        resetForm();
+      }
+
       onSuccess?.();
     } catch (err: any) {
-      setError(err instanceof Error ? err.message : "Failed to create event");
-      console.error("Error creating event:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : mode === "edit"
+            ? "Failed to update event"
+            : "Failed to create event"
+      );
+      console.error(`Error ${mode === "edit" ? "updating" : "creating"} event:`, err);
     } finally {
       setIsSubmitting(false);
     }
@@ -153,10 +237,9 @@ export default function AddEventForm({
           Tell people what's planned. Include details about the vibe, the route, skill level, or
           anything they should know before joining.
         </FieldDescription>
-        <Input
+        <Textarea
           id="description"
-          type="text"
-          placeholder="Describe the event"
+          placeholder="Describe the event..."
           value={form.description || ""}
           onChange={(e) => updateField("description", e.target.value || undefined)}
         />
@@ -230,6 +313,38 @@ export default function AddEventForm({
           A few images of the boat or location make your listing stand out. You can add more or make
           changes later.
         </FieldDescription>
+
+        {/* Image Preview */}
+        {(imagePreview || form.imageFile) && (
+          <div className="mb-4">
+            <div className="relative aspect-video w-full max-w-md overflow-hidden rounded-lg border border-border">
+              {form.imageFile ? (
+                // Show preview of new file
+                <img
+                  src={URL.createObjectURL(form.imageFile)}
+                  alt="Preview"
+                  className="h-full w-full object-cover"
+                />
+              ) : imagePreview ? (
+                // Show existing image
+                <img
+                  src={imagePreview}
+                  alt="Current event image"
+                  className="h-full w-full object-cover"
+                />
+              ) : null}
+            </div>
+            {mode === "edit" && event?.imageUrl && !form.imageFile && (
+              <p className="mt-2 text-sm text-muted-foreground">Current image</p>
+            )}
+            {form.imageFile && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                New image selected: {form.imageFile.name}
+              </p>
+            )}
+          </div>
+        )}
+
         <Input
           id="image"
           type="file"
@@ -238,8 +353,20 @@ export default function AddEventForm({
           onChange={(e) => {
             const file = e.target.files?.[0] || null;
             updateField("imageFile", file);
+            // Update preview with new file
+            if (file) {
+              setImagePreview(URL.createObjectURL(file));
+            } else {
+              // Reset to existing image if clearing file selection
+              setImagePreview(mode === "edit" && event?.imageUrl ? event.imageUrl : null);
+            }
           }}
         />
+        {mode === "edit" && event?.imageUrl && !form.imageFile && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Select a new image to replace the current one, or leave empty to keep the existing image.
+          </p>
+        )}
       </Field>
 
       {error && (
@@ -269,7 +396,11 @@ export default function AddEventForm({
         </Button>
 
         <Button type="submit" size="lg" className="flex-1" disabled={isSubmitting}>
-          {isSubmitting ? "Creating..." : "Create"}
+          {isSubmitting
+            ? mode === "edit"
+              ? "Updating..."
+              : "Creating..."
+            : submitLabel || (mode === "edit" ? "Update Event" : "Create")}
         </Button>
       </div>
     </form>
